@@ -2255,7 +2255,7 @@ window.onAvatarFile=async function(input){
     if(typeof storage!=='undefined' && storage && typeof membersCol!=='undefined' && membersCol && myUid){
       // 本番：Storageへアップロード→URLをメンバーに保存
       const blob=await (await fetch(dataUrl)).blob();
-      const r=sRef(storage, `avatars/${tid}/${myUid}`);
+      const r=sRef(storage, `avatars/${teamId}/${myUid}`);
       await uploadBytes(r, blob);
       const url=await getDownloadURL(r);
       await setDoc(doc(membersCol, myUid), {photoURL:url}, {merge:true});
@@ -2353,7 +2353,7 @@ document.getElementById('mbg').onclick=function(e){if(e.target===this)cM()};
     const t=e.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy;
     if(Math.abs(dx)<55) return;                 // 動きが小さければ無視
     if(Math.abs(dx) < Math.abs(dy)*1.6) return; // 縦の方が大きければスクロール扱い
-    const TAB_MAX=3;                            // タブは0..3
+    const TAB_MAX=4;                            // タブは0..4（稼働一覧まで）
     if(dx<0 && tab<TAB_MAX) window.st(tab+1, 1);   // 左へ → 次のタブ（右から入る）
     else if(dx>0 && tab>0) window.st(tab-1, -1);    // 右へ → 前のタブ（左から入る）
   }, {passive:true});
