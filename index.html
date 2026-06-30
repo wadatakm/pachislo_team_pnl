@@ -1139,24 +1139,18 @@ function renderTabs(){
 window.st=function(i,dir){
   if(dir===undefined) dir=(i>tab)?1:(i<tab?-1:0);
   const fromCal=(tab===0||tab===1), toCal=(i===0||i===1);
-  const animOut = fromCal && i!==tab;   // カレンダーから出る/カレンダー間の移動
-  const calToCal = fromCal && toCal && i!==tab;   // カレンダー間は軽く重ねる
-  const go=()=>{
-    tab=i;selDay=null;
-    if(toCal && fromCal) cfabShown=false;  // カレンダー間移動でも入場アニメを再生させる
-    ra();
-    if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
-  };
+  const leavingCal = fromCal && !toCal && i!==tab;   // カレンダー→他タブ（バーは退場）
   const bar=document.getElementById('cfabbar');
-  if(animOut && bar && bar.style.display!=='none'){
-    bar.classList.remove('cfb-anim');
+  if(leavingCal && bar && bar.style.display!=='none'){
+    cfabOutAnimating=true;
+    bar.classList.remove('cfb-anim','cfb-fast');
     bar.classList.add('cfb-out');
-    if(calToCal) bar.classList.add('cfb-fast');
-    setTimeout(()=>{
-      bar.classList.remove('cfb-out'); go();
-      if(calToCal) setTimeout(()=>{ bar.classList.remove('cfb-anim'); bar.classList.remove('cfb-fast'); }, 460);  // イン完了後に同時除去（途中で強アニメに切替わらないように）
-    }, calToCal?150:260);
-  } else { go(); }
+    setTimeout(()=>{ cfabOutAnimating=false; bar.classList.remove('cfb-out'); syncCfab(); }, 260);  // バーのアウトは並行
+  }
+  // 中身の切替・スライドはすぐ実行（スワイプを詰まらせない）
+  tab=i; selDay=null;
+  ra();
+  if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
 }
 window.selCal=function(v){calSel=+v;selDay=null;ra()}
 
@@ -1689,7 +1683,7 @@ function cfabBarHtml(){
       <button class="dayfab bal cfab side" onpointerdown="cfabRipple(event,this)" onclick="qBal()" aria-label="収支管理">${coin}</button>
     </div>`;
 }
-let cfabShown=false;
+let cfabShown=false, cfabOutAnimating=false;
 function syncCfab(){
   const host=document.getElementById('fab-host'); if(!host) return;
   let bar=document.getElementById('cfabbar');
@@ -1704,6 +1698,7 @@ function syncCfab(){
     }
     cfabShown=true;
   }else{
+    if(cfabOutAnimating) return;   // アウト再生中は隠さない（タブ移動と並行）
     if(bar){ bar.style.display='none'; bar.classList.remove('cfb-anim'); }
     cfabShown=false;
   }
