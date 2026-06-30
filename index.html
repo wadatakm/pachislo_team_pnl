@@ -355,6 +355,8 @@ body.modal-open #wrap{overflow:hidden!important}
 /* 稼働一覧 */
 .wlbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px 2px}
 .wlcount{font-size:12px;color:var(--text-muted);font-weight:600}
+.wltgl{font-size:11px;padding:3px 10px;border:0.5px solid var(--border-strong);border-radius:999px;background:var(--surface-2);color:var(--text-secondary);cursor:pointer}
+.wltgl.on{background:var(--text-success);border-color:var(--text-success);color:#00150d;font-weight:700}
 .wllist{display:flex;flex-direction:column;gap:9px}
 .wlrow{background:rgba(255,255,255,.03);border:0.5px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer}
 .wlrow:active{background:rgba(255,255,255,.06)}
@@ -393,6 +395,9 @@ body.modal-open #wrap{overflow:hidden!important}
 .cc.emp{background:#000}
 .cc.tod{background:#0e0e10;box-shadow:inset 0 0 0 1px var(--border-strong)}
 .cc.sel{box-shadow:inset 0 0 0 1.5px var(--text-success)}
+.todayquick{min-height:50px;border:none;border-radius:8px;background:var(--bg-accent);color:var(--text-success);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.todayquick .tqp{font-size:17px;line-height:1;font-weight:700}
+.todayquick:active{opacity:.7}
 .cc.sel.selin{animation:selFade .4s ease both}
 .cc.sel.selout{animation:selFadeOut .28s ease both}
 @keyframes selFade{from{box-shadow:inset 0 0 0 1.5px transparent}to{box-shadow:inset 0 0 0 1.5px var(--text-success)}}
@@ -738,12 +743,10 @@ async function handleKicked(){
 }
 function maybePromptBaseline(){
   if(myUid==null||uidToMid[myUid]==null) return;
-  const key='baseAsked_'+teamId+'_'+myUid;
-  if(localStorage.getItem(key)) return;
+  const key='introSeen_'+teamId+'_'+myUid;
+  if(localStorage.getItem(key)) return;   // この端末で一度案内したら出さない
   localStorage.setItem(key,'1');
-  const mid=uidToMid[myUid];
-  if(S.some((_,si)=>getBaseMedal(mid,si)>0)) return; // 既に登録済みなら尋ねない
-  setTimeout(()=>{ if(confirm('貯メダルの初期枚数を登録しますか？\n\n使い始めの時点で各店舗に預けている枚数です。スキップして後でプロフィールから登録することもできます。')) oBaseMedal(); }, 500);
+  setTimeout(()=>{ alert('アプリを使い始める前から各店舗に貯メダルがある場合は、プロフィールの「初期枚数」から設定してください。'); }, 500);
 }
 
 // ---- 認証＋チーム参加（招待コード方式・ブラウザのみ）----
@@ -1258,6 +1261,8 @@ function rTeam(container){
         const sal=dayMarksHtml(day);
         out.push(`<div class="cc${info?' hd':''}${isT?' tod':''}${isS?' sel':''}${isS&&fabAnim?' selin':''}"${isS?' style="position:relative;z-index:10"':''} onclick="pickDay(${day})">${sal}<div class="dn${dow===0?' s':dow===6?' sa':''}">${day}</div>${info?`<div class="ct ${c(info.real)}">${f(info.real)}</div><div class="csub" style="font-size:8px">${[...info.ms].map(id=>N[id]).join('・')}</div>`:''}${fab}${fab2}${fab3}</div>`);
       }
+      const trail=(7-((first+days)%7))%7;
+      if(trail>0) out.push(`<button class="todayquick" style="grid-column:span ${trail}" onclick="todayQuick()"><span class="tqp">＋</span>本日の登録</button>`);
       return out.join('');
     })()}</div>
     <div class="scrollarea">
@@ -1498,6 +1503,7 @@ function rAnalysis(container){
 // 稼働一覧（全メンバーの台ごと記録・フィルタ＋ソート）
 // ============================================================
 let wlSort='date_desc';
+let wlOnlyOpen=false;  // 終了時未入力（記録中）だけ表示
 let wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set()};
 let wlFilterOpen=null;
 const WL_SORTS=[['date_desc','日付：新しい順'],['date_asc','日付：古い順'],['real_desc','台収支：高い順'],['real_asc','台収支：低い順'],['hours_desc','稼働：長い順'],['hourly_desc','時給：高い順'],['no_asc','台番：小さい順'],['no_desc','台番：大きい順']];
@@ -1510,7 +1516,7 @@ function wlPass(l){
   return true;
 }
 function wlSorted(){
-  const logs=allMLogs().filter(wlPass);
+  const logs=allMLogs().filter(wlPass).filter(l=> !wlOnlyOpen || !mlVals(l).hasEnd);
   const real=l=>mlVals(l).daiYen||0, hrs=l=>parseFloat(l.hours)||0, dnum=l=>l.y*10000+l.mo*100+(l.day||0);
   const hrly=l=>{const v=mlVals(l);return v.hourly==null?-1e15:v.hourly;};
   const no=l=>{const n=parseFloat(l.machineNo);return isNaN(n)?Infinity:n;};
@@ -1527,6 +1533,7 @@ function wlSorted(){
   return logs.sort(cmp);
 }
 window.wlSetSort=function(v){ wlSort=v; ra(); };
+window.wlToggleOpen=function(){ wlOnlyOpen=!wlOnlyOpen; ra(); };
 window.wlOpenFilter=function(k){ wlFilterOpen=(wlFilterOpen===k)?null:k; ra(); };
 window.wlToggle=function(kind,val){ const set=wlFil[kind]; const v=(kind==='store'||kind==='member')?+val:val; if(set.has(v)) set.delete(v); else set.add(v); ra(); };
 window.wlClear=function(kind){ wlFil[kind]=new Set(); ra(); };
@@ -1572,7 +1579,7 @@ function rWorkLog(container){
   div.innerHTML=`
     <div class="topbar"><span class="topbar-title">稼働一覧</span><span class="topbar-val ${c(total)}">${f(total)}</span></div>
     ${wlFilterBar()}
-    <div class="wlbar"><span class="wlcount">${rows.length}件</span><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
+    <div class="wlbar"><span class="wlcount">${rows.length}件</span><button class="wltgl${wlOnlyOpen?' on':''}" onclick="wlToggleOpen()">記録中のみ</button><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
     <div class="asec">
       ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':`<div class="wllist">${rows.map(wlRow).join('')}</div>`}
     </div>`;
@@ -1587,6 +1594,7 @@ window.sY=function(v){sy=+v;ra()}
 window.sGM=function(m){gMode=m;ra()}
 window.sGMon=function(v){gMon=+v;ra()}
 window.chM=function(d){cm+=d;if(cm>11){cm=0;cy++}if(cm<0){cm=11;cy--}selDay=null;saveView();ra()}
+window.todayQuick=function(){ const t=new Date(); cy=t.getFullYear(); cm=t.getMonth(); selDay=t.getDate(); saveView(); ra(); oDayTeam(t.getDate()); };
 
 // 貯メダルの初期枚数（自分の、店舗ごと）を編集
 window.oBaseMedal=function(){
@@ -1596,7 +1604,8 @@ window.oBaseMedal=function(){
   document.getElementById('mbody').innerHTML=`
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">このアプリを使い始めた時点で、各店舗に預けている貯メダルの枚数を入力してください。これは収支（勝ち負け）には足さず、残高の出発点として使います。</div>
     ${S.map((st,si)=>`<div class="fr"><label class="fl">${st.name}</label>
-      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}"></div>`).join('')}`;
+      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}"></div>`).join('')}
+    <button class="btn" style="width:100%;margin-top:3px" onclick="addStoreFromBase()">＋ 店舗を追加</button>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="oProfile()">キャンセル</button><button class="btn p" onclick="svBaseMedal()">保存</button>`;
   oM();
 };
@@ -1604,6 +1613,15 @@ window.svBaseMedal=function(){
   const mid=(myUid!=null)?uidToMid[myUid]:null; if(mid==null) return;
   S.forEach((st,si)=>{ MI[`base_${getMedalKey(mid,si)}`]=parseFloat(document.getElementById(`bm-${si}`)?.value)||0; });
   saveMedals(); oProfile();
+};
+window.addStoreFromBase=async function(){
+  const name=(prompt('新しい店舗名を入力してください')||'').trim();
+  if(!name) return;
+  const mid=(myUid!=null)?uidToMid[myUid]:null;
+  if(mid!=null) S.forEach((st,si)=>{ const el=document.getElementById('bm-'+si); if(el&&el.value!=='') MI[`base_${getMedalKey(mid,si)}`]=parseFloat(el.value)||0; }); // 入力中の値を保持
+  S.push({name, mp:46, rate:5.16});
+  await saveConfig();
+  oBaseMedal();   // 新しい店舗の入力欄を増やして再描画
 };
 
 // ===== 給与支払いモーダル（履歴＋編集ロック式） =====
@@ -1648,7 +1666,7 @@ function renderSalary(){
   if(salLocked){
     document.getElementById('mbody').innerHTML=`${back}
       <div class="secbox"><div class="sechd"><span class="st">この日の給与</span><button class="tlink" onclick="salEdit()">編集</button></div>${salViewHtml()}</div>`;
-    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button>`;
+    document.getElementById('mfoot').innerHTML=`<button class="btn danger" onclick="delSalary()">この日を削除</button><button class="btn" onclick="cM()">閉じる</button>`;
   }else{
     const exist=slGet(y,mo,day)||{};
     const rows=N.map((n,mid)=>{ const uid=MEMBERS[mid]?.uid; const val=(uid&&exist[uid])?exist[uid]:'';
@@ -1685,8 +1703,28 @@ window.svSalary=function(){
   saveSalary(ds,payments);
   salView='edit'; salLocked=true; renderSalary();
 };
+window.delSalary=function(){
+  const {y,mo,day}=salCtx; const ds=dstr(y,mo,day);
+  confirmBox(`${mo+1}/${day} の給与支払いを削除しますか？\n引いていた現金残高はこの分だけ戻ります。`, async ()=>{
+    if(typeof salaryCol!=='undefined' && salaryCol){
+      try{ await deleteDoc(doc(salaryCol,ds)); }catch(e){ alert('削除に失敗しました：'+e.message); return; }
+    }
+    delete SL[ds];
+    cM(); if(typeof ra==='function') ra();
+  }, {yes:'削除', yesClass:'danger'});
+};
 // ===== 収支管理モーダル =====
 let balCtx={mid:null,y:null,mo:null,day:null}; let balLocked=false; let balTeamView=false;
+window.delBalance=function(){
+  const {mid,y,mo,day}=balCtx; const ds=dstr(y,mo,day);
+  confirmBox(`${mo+1}/${day} の収支管理の記録を削除しますか？\n現金残高・貯メダル残高はこの記録を除いた状態に戻ります。`, async ()=>{
+    if(typeof balCol!=='undefined' && balCol){
+      try{ await deleteDoc(doc(balCol,`${mid}_${ds}`)); }catch(e){ alert('削除に失敗しました：'+e.message); return; }
+    }
+    delete BL[`${mid}_${ds}`];
+    cM(); if(typeof ra==='function') ra();
+  }, {yes:'削除', yesClass:'danger'});
+};
 window.openBalance=function(mid,day){
   balCtx={mid,y:cy,mo:cm,day}; balNew=[]; balTeamView=true;   // まず全員一覧から
   balLocked = !!blGet(mid,cy,cm,day);
@@ -1754,13 +1792,14 @@ function renderBalanceBody(){
   document.getElementById('mtitle').innerHTML=`収支管理 — ${avatarMini(mid)}${mlEsc(N[mid])} ${mo+1}/${day}`;
   const teamBtn=`<button class="tlink mut" onclick="balToTeam(true)" style="margin-bottom:10px">‹ 全員のデータに戻る</button>`;
   if(balLocked){
+    const isSelf = MEMBERS[mid] && MEMBERS[mid].uid===myUid;
     document.getElementById('mbody').innerHTML=`${teamBtn}
       <div class="secbox" id="secSt">
         <div class="sechd"><span class="st">この日の収支管理</span><button class="tlink" onclick="balEdit()">編集</button></div>
         ${balViewHtml()}
       </div>
       <div class="mlcalc" id="bl-calc"></div>`;
-    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button>`;
+    document.getElementById('mfoot').innerHTML=`${isSelf?'<button class="btn danger" onclick="delBalance()">この日を削除</button>':''}<button class="btn" onclick="cM()">閉じる</button>`;
   }else{
     document.getElementById('mbody').innerHTML=`${teamBtn}
       <div class="secbox" id="secSt"><div class="sechd"><span class="st">貯メダル残高（店ごと・その日の終わり）</span></div>
