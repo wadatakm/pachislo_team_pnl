@@ -415,10 +415,16 @@ body.modal-open #wrap{overflow:hidden!important}
 .dayfab.bal{background:rgba(245,197,24,.2);text-shadow:0 0 2px rgba(90,68,0,.95),0 1px 1.5px rgba(0,0,0,.6)}
 .dayfab.bal svg{stroke-width:2.4}
 .dayfab.pay{background:rgba(124,116,255,.22);text-shadow:0 0 2px rgba(40,34,120,.95),0 1px 1.5px rgba(0,0,0,.6)}
-.cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:center;gap:24px;z-index:60;pointer-events:none}
+.cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:flex-end;gap:26px;z-index:60;pointer-events:none;animation:cfbIn .34s cubic-bezier(.2,.7,.3,1) both}
+.cfabbar.cfb-out{animation:cfbOut .16s ease both}
 .cfabbar .cfab{pointer-events:auto}
-.cfab{width:48px;height:48px;font-size:24px}
-.cfab.big{width:62px;height:62px;font-size:31px}
+.cfab{width:46px;height:46px;font-size:23px}
+.cfab.side{margin-bottom:0}
+.cfab.big{width:70px;height:70px;font-size:35px;margin-bottom:16px}
+.cfab .cfrip{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none;animation:cfripA .42s ease-out forwards;z-index:2}
+@keyframes cfbIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes cfbOut{from{opacity:1;transform:translateX(-50%) translateY(0)}to{opacity:0;transform:translateX(-50%) translateY(10px)}}
+@keyframes cfripA{from{transform:scale(0);opacity:.65}to{transform:scale(7);opacity:0}}
 /* 入場：ふわっとフェードしながら少し広がる／退場：フェードして中心へ */
 .dayfab.anim-in{animation:fabFadeTR .5s cubic-bezier(.2,.6,.3,1) both}
 .dayfab.bal.anim-in{animation-name:fabFadeBR;animation-delay:.05s}
@@ -1086,8 +1092,12 @@ function renderTabs(){
 }
 window.st=function(i,dir){
   if(dir===undefined) dir=(i>tab)?1:(i<tab?-1:0);
-  tab=i;selDay=null;ra();
-  if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
+  const bar=document.querySelector('.cfabbar');
+  const go=()=>{
+    tab=i;selDay=null;ra();
+    if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
+  };
+  if(bar && i!==tab){ bar.classList.add('cfb-out'); setTimeout(go,150); } else go();
 }
 window.selCal=function(v){calSel=+v;selDay=null;ra()}
 
@@ -1181,11 +1191,8 @@ function rMember(container,mid){
       for(let b=0;b<first;b++) out.push('<div class="cc emp"></div>');
       for(let i=0;i<days;i++){
         const day=i+1,dow=(first+i)%7,info=byDay[day],isT=isNow&&today.getDate()===day,isS=selDay===day;
-        const fab=isS?(isSelf?dayfabBtn('編集・追加',`oDayM(${mid},${day})`,false,dow):dayfabBtn('記録を見る',`oDayView(${mid},${day})`,true,dow)):'';
-        const fab2=(isS&&isSelf)?dayfab2Btn(`openBalance(${mid},${day})`):'';
-        const fab3=(isS&&isLeader())?dayfab3Btn(`openSalary(${day})`):'';
         const sal=dayMarksHtml(day, mid);
-        out.push(`<div class="cc${info?' hd':''}${isT?' tod':''}${isS?' sel':''}${isS&&fabAnim?' selin':''}"${isS?' style="position:relative;z-index:10"':''} onclick="pickDay(${day})">${sal}<div class="dn${dow===0?' s':dow===6?' sa':''}">${day}</div>${info?`<div class="ct ${c(info.real)}">${f(info.real)}</div>${info.count>1?`<div class="csub">${info.count}台</div>`:''}${info.real!==info.cash?`<div class="csub">(現${f(info.cash)})</div>`:''}`:''}${fab}${fab2}${fab3}</div>`);
+        out.push(`<div class="cc${info?' hd':''}${isT?' tod':''}${isS?' sel':''}${isS&&fabAnim?' selin':''}"${isS?' style="position:relative;z-index:10"':''} onclick="pickDay(${day})">${sal}<div class="dn${dow===0?' s':dow===6?' sa':''}">${day}</div>${info?`<div class="ct ${c(info.real)}">${f(info.real)}</div>${info.count>1?`<div class="csub">${info.count}台</div>`:''}${info.real!==info.cash?`<div class="csub">(現${f(info.cash)})</div>`:''}`:''}</div>`);
       }
       return out.join('');
     })()}</div>
@@ -1209,7 +1216,8 @@ function rMember(container,mid){
         </div>`;
       }).join('')}
     </div>
-    </div>`;
+    </div>
+    ${cfabBarHtml()}`;
   container.appendChild(div);
 }
 
@@ -1289,11 +1297,7 @@ function rTeam(container){
       }).join('')}
     </div>
     </div>
-    <div class="cfabbar">
-      <button class="dayfab pay cfab" onclick="qSalary()" aria-label="給与"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg></button>
-      <button class="dayfab cfab big" onclick="qAdd()" aria-label="記録を追加">＋</button>
-      <button class="dayfab bal cfab" onclick="qBal()" aria-label="収支管理"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6V6"/><path d="M5 10v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/><path d="M5 14v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/></svg></button>
-    </div>`;
+    ${cfabBarHtml()}`;
   container.appendChild(div);
 }
 
@@ -1606,9 +1610,25 @@ window.todayQuick=function(){ const t=new Date(); cy=t.getFullYear(); cm=t.getMo
 // 下部ボタンバー：対象日＝選択日、無ければ本日（必要なら本日の月へ移動）
 function qTargetDay(){ if(selDay) return {y:cy,mo:cm,day:selDay,jump:false}; const t=new Date(); return {y:t.getFullYear(),mo:t.getMonth(),day:t.getDate(),jump:true}; }
 function qGo(t){ if(t.jump){ cy=t.y; cm=t.mo; selDay=null; saveView(); ra(); } }
-window.qAdd=function(){ const t=qTargetDay(); qGo(t); oDayTeam(t.day); };
+window.qAdd=function(){ const t=qTargetDay(); qGo(t); if(tab===1) oDayM(myMid(),t.day); else oDayTeam(t.day); };
 window.qBal=function(){ const t=qTargetDay(); qGo(t); openBalance(myMid(),t.day); };
 window.qSalary=function(){ const t=qTargetDay(); qGo(t); openSalary(t.day); };
+window.cfabRipple=function(e,el){
+  const r=document.createElement('span'); r.className='cfrip';
+  const rect=el.getBoundingClientRect();
+  const x=((e&&e.clientX)||(rect.left+rect.width/2))-rect.left, y=((e&&e.clientY)||(rect.top+rect.height/2))-rect.top;
+  r.style.left=x+'px'; r.style.top=y+'px';
+  el.appendChild(r); setTimeout(()=>{ try{r.remove();}catch(_){}} ,440);
+};
+function cfabBarHtml(){
+  const coin='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6V6"/><path d="M5 10v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/><path d="M5 14v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/></svg>';
+  const bill='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg>';
+  return `<div class="cfabbar">
+      <button class="dayfab pay cfab side" onpointerdown="cfabRipple(event,this)" onclick="qSalary()" aria-label="給与">${bill}</button>
+      <button class="dayfab cfab big" onpointerdown="cfabRipple(event,this)" onclick="qAdd()" aria-label="記録を追加">＋</button>
+      <button class="dayfab bal cfab side" onpointerdown="cfabRipple(event,this)" onclick="qBal()" aria-label="収支管理">${coin}</button>
+    </div>`;
+}
 
 // 貯メダルの初期枚数（自分の、店舗ごと）を編集
 window.oBaseMedal=function(){
