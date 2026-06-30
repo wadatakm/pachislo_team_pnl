@@ -603,7 +603,7 @@ function setTeamRefs(tid){
   cfgDoc     = doc(db, "teams", tid, "config", "main");   // 店舗設定
   medalDoc   = doc(db, "teams", tid, "config", "medals"); // 貯メダル初期枚数・手動調整
   entriesCol = collection(db, "teams", tid, "entries");   // 稼働データ（1件=1ドキュメント）
-  mlogsCol   = collection(db, "teams", tid, "machinelogs");// 台ごと記録（分析専用・収支に非関与）
+  mlogsCol   = collection(db, "teams", tid, "machinelogs");// 台記録（分析専用・収支に非関与）
   balCol     = collection(db, "teams", tid, "balancelog"); // 収支管理（個人・日付ごとの貯メダル絶対量＋現金投資）
   salaryCol  = collection(db, "teams", tid, "salary");     // 給与支払い（現金残高のみ減算・収支不算入）
   membersCol = collection(db, "teams", tid, "members");   // 参加メンバー（uid→表示名）
@@ -621,7 +621,7 @@ let S  = DEF_STORES.map(s=>({...s}));
 let MI = {};
 let initCash = 0;   // チーム共通の初期現金（残高・総資産の起点。収支には足さない）
 let entryDocs = []; // 稼働ドキュメントの生データ（uid付き）
-let mlogDocs = []; // 台ごと記録の生データ（uid付き・分析専用）
+let mlogDocs = []; // 台記録の生データ（uid付き・分析専用）
 let ML = {};       // mid_年_月 → [台ログ...]（rebuildMLで構築）
 let BL = {};       // mid_YYYY-MM-DD → {stored:{店idx:絶対枚数}, cashIn:現金投資合計}（収支管理・残高の出どころ）
 let balNew = [];   // 収支管理モーダルで一時的に追加する新規店名
@@ -654,7 +654,7 @@ async function saveEntry(mid,entry){
 }
 async function deleteEntry(id){ try{ await deleteDoc(doc(entriesCol,id)); }catch(e){ alert('削除に失敗しました：'+e.message); } }
 
-// ---- 台ごと記録（分析専用・全体収支に非関与）----
+// ---- 台記録（分析専用・全体収支に非関与）----
 async function saveMLog(mid,log){
   const uid=MEMBERS[mid]?.uid; if(!uid){ alert('メンバー情報が読み込めていません'); return; }
   try{ await setDoc(doc(mlogsCol,log.id),{...log,uid,y:cy,mo:cm}); }catch(e){ alert('保存に失敗しました：'+e.message); }
@@ -758,7 +758,7 @@ function attachListeners(){
     entryDocs=[]; snap.forEach(ds=>entryDocs.push(ds.data()));
     rebuildD(); entReady=true; tryRender();
   }, err=>console.error('entries',err));
-  // 台ごと記録（分析専用）
+  // 台記録（分析専用）
   onSnapshot(mlogsCol, snap=>{
     mlogDocs=[]; snap.forEach(ds=>mlogDocs.push(ds.data()));
     rebuildML(); if(booted) ra();
@@ -1003,7 +1003,7 @@ function blDayCash(mid,y,mo,day){ const r=blGet(mid,y,mo,day); return r?-(r.cash
 function blMonthCash(mid,y,mo){ let t=0; const dn=dim(y,mo); for(let d=1;d<=dn;d++) t+=blDayCash(mid,y,mo,d); return t; }
 function blTeamDayCash(y,mo,day){ let t=0; N.forEach((_,mid)=>t+=blDayCash(mid,y,mo,day)); return t; }
 function blTeamMonthCash(y,mo){ let t=0; N.forEach((_,mid)=>t+=blMonthCash(mid,y,mo)); return t; }
-// 実質収支＝台ごと記録の台収支(円)合計／現金投資＝台ごと記録の現金投資合計（収支表示はここから）
+// 実質収支＝台記録の台収支(円)合計／現金投資＝台記録の現金投資合計（収支表示はここから）
 function mlDayReal(mid,y,mo,day){ return gML(mid,y,mo).filter(l=>l.day===day).reduce((s,l)=>s+(mlVals(l).daiYen||0),0); }
 function mlMonthReal(mid,y,mo){ return gML(mid,y,mo).reduce((s,l)=>s+(mlVals(l).daiYen||0),0); }
 function mlTeamDayReal(y,mo,day){ let t=0; N.forEach((_,mid)=>t+=mlDayReal(mid,y,mo,day)); return t; }
@@ -1021,7 +1021,7 @@ function mlEvGapDay(mid,y,mo,day){ return gML(mid,y,mo).filter(l=>l.day===day).r
 function mlEvGapMonth(mid,y,mo){ return gML(mid,y,mo).reduce((s,l)=>s+(mlVals(l).evGap||0),0); }
 function mlTeamEvGapDay(y,mo,day){ let t=0; N.forEach((_,mid)=>t+=mlEvGapDay(mid,y,mo,day)); return t; }
 function mlTeamEvGapMonth(y,mo){ let t=0; N.forEach((_,mid)=>t+=mlEvGapMonth(mid,y,mo)); return t; }
-// 台ごと記録の稼働時間合計（時給・稼働の分母）
+// 台記録の稼働時間合計（時給・稼働の分母）
 function mlHoursDay(mid,y,mo,day){ return gML(mid,y,mo).filter(l=>l.day===day).reduce((s,l)=>s+(parseFloat(l.hours)||0),0); }
 function mlHoursMonth(mid,y,mo){ return gML(mid,y,mo).reduce((s,l)=>s+(parseFloat(l.hours)||0),0); }
 function mlTeamHoursDay(y,mo,day){ let t=0; N.forEach((_,mid)=>t+=mlHoursDay(mid,y,mo,day)); return t; }
@@ -1212,7 +1212,7 @@ function rMember(container,mid){
   const today=new Date(),isNow=today.getFullYear()===cy&&today.getMonth()===cm;
   const es=gE(mid,cy,cm);
   const byDay={};
-  // セル＝その日の実質収支(収支管理)＋台数(台ごと記録)
+  // セル＝その日の実質収支(収支管理)＋台数(台記録)
   const dn0=dim(cy,cm);
   for(let d=1;d<=dn0;d++){ const has=blDayHas(mid,cy,cm,d); const cnt=gML(mid,cy,cm).filter(l=>l.day===d).length; if(has||cnt>0){ byDay[d]={real:mlDayReal(mid,cy,cm,d),cash:blDayCash(mid,cy,cm,d),count:cnt}; } }
   const days=dim(cy,cm),first=fd(cy,cm);
@@ -1412,7 +1412,7 @@ function rMedal(container){
 }
 
 // ============================================================
-// 収支分析（台ごと記録＝台収支ベース）
+// 収支分析（台記録＝台収支ベース）
 // ============================================================
 let anaGran='month';                 // 'year' | 'month' | 'day'
 let anaYear=cy, anaMonth=cm, anaDay=(new Date()).getDate();
@@ -1570,7 +1570,7 @@ function rAnalysis(container){
 }
 
 // ============================================================
-// 稼働一覧（全メンバーの台ごと記録・フィルタ＋ソート）
+// 稼働一覧（全メンバーの台記録・フィルタ＋ソート）
 // ============================================================
 let wlSort='date_desc';
 let wlOnlyOpen=false;  // 終了時未入力（記録中）だけ表示
@@ -1733,8 +1733,8 @@ function renderBaseMedal(mid){
   const sel=selStores(mid);
   document.getElementById('mbody').innerHTML=`
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">使い始めた時点で各店に預けている貯メダルの枚数を入力してください。収支には足さず、残高の出発点として使います。対象の店だけ表示されます。</div>
-    ${sel.length?sel.map(si=>`<div class="fr" style="display:flex;align-items:center;gap:8px"><label class="fl" style="flex:1;margin:0">${mlEsc(S[si].name)}</label>
-      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}" style="flex:1.1">
+    ${sel.length?sel.map(si=>`<div class="fr" style="display:flex;align-items:center;gap:8px"><label class="fl" style="flex:1;min-width:0;margin:0">${mlEsc(S[si].name)}</label>
+      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}" style="width:130px;flex:none;text-align:right">
       <button class="xstore" onclick="baseMedalRemove(${si})" aria-label="外す">×</button></div>`).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 2px">対象の店がありません。下の「店を選ぶ」から追加してください。</div>'}
     <button class="btn" style="width:100%;margin-top:6px" onclick="baseMedalToPick()">＋ 店を選ぶ</button>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="oProfile()">キャンセル</button><button class="btn p" onclick="svBaseMedal()">保存</button>`;
@@ -1751,7 +1751,7 @@ function openNewStoreForm(returnFn){
   newStoreReturn=returnFn;
   document.getElementById('mtitle').textContent='新しい店を追加';
   document.getElementById('mbody').innerHTML=`
-    <div class="fr"><label class="fl">店名</label><input id="ns-name" type="text" placeholder="店名" autocomplete="off"></div>
+    <div class="fr"><label class="fl">店舗名</label><input id="ns-name" type="text" placeholder="店舗名" autocomplete="off"></div>
     <div class="fr"><label class="fl">貸しメダル（1000円 → 何枚）</label><input id="ns-mp" type="number" inputmode="numeric" value="46"></div>
     <div class="fr"><label class="fl">交換率（何枚 → 100円）</label><input id="ns-rate" type="number" inputmode="decimal" step="0.01" value="5.16"></div>
     <div style="font-size:11px;color:var(--text-muted);margin-top:4px">あとから設定（⚙）でも変更できます。</div>`;
@@ -1760,7 +1760,7 @@ function openNewStoreForm(returnFn){
 }
 window.newStoreSave=async function(){
   const name=(document.getElementById('ns-name')?.value||'').trim();
-  if(!name){ alert('店名を入力してください'); return; }
+  if(!name){ alert('店舗名を入力してください'); return; }
   const mp=parseFloat(document.getElementById('ns-mp')?.value)||46;
   const rate=parseFloat(document.getElementById('ns-rate')?.value)||5.16;
   S.push({name, mp, rate});
@@ -1893,10 +1893,10 @@ function balTeamHtml(){
       if(!body) body=`<div style="font-size:11px;color:var(--text-muted)">貯メダルの記録なし</div>`;
     }else body=`<div style="font-size:11px;color:var(--text-muted)">記録なし</div>`;
     const isMe=MEMBERS[mid]&&MEMBERS[mid].uid===myUid;
-    return `<div class="secbox" style="margin-bottom:9px">
+    return `<div class="secbox" style="margin-bottom:9px;cursor:pointer" onclick="balOpenMember(${mid})">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:13px;font-weight:600;color:${isMe?'var(--text-success)':'#c7c7cc'};display:inline-flex;align-items:center">${avatarMini(mid)}${nm}${isMe?' <span style="font-size:10px;color:var(--text-muted);margin-left:4px">あなた</span>':''}</span>
-        <span style="font-size:13px;font-weight:600;color:${drCol};font-variant-numeric:tabular-nums">${dr>=0?'+':''}${dr.toLocaleString()}円</span>
+        <span style="font-size:13px;font-weight:600;color:${isMe?'var(--text-success)':'#c7c7cc'};display:inline-flex;align-items:center">${avatarMini(mid)}${nm}${isMe?' <span style="font-size:10px;color:var(--text-muted);margin-left:4px">あなた</span>':'<span style="font-size:10px;color:var(--text-muted);margin-left:4px">タップで詳細</span>'}</span>
+        <span style="font-size:13px;font-weight:600;color:${drCol};font-variant-numeric:tabular-nums">${dr>=0?'+':''}${dr.toLocaleString()}円 ›</span>
       </div>${body}</div>`;
   }).join('');
 }
@@ -1910,10 +1910,13 @@ function balRowsHtml(){
     const prev=pinfo.val; const plabel=pinfo.date?`前回(${mdLabel(pinfo.date)}) ${prev.toLocaleString()}枚`:`初期 ${prev.toLocaleString()}枚`;
     let cur=(exist&&exist.stored[si]!=null)?exist.stored[si]:prev;
     if(balTmp&&balTmp[si]!=null) cur=balTmp[si];            // 店選択を行き来しても入力中の値を保持
-    return `<div class="fr" style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><label class="fl" style="flex:1;margin:0">${mlEsc(st.name)}<span style="color:var(--text-muted);font-weight:400;display:block;font-size:10px"> ${plabel}</span></label>
-      <input id="bl-${si}" type="number" inputmode="numeric" value="${cur}" data-prev="${prev}" oninput="blCalc()" style="flex:1.1">
-      <button class="xstore" onclick="balRemoveStore(${si})" aria-label="外す">×</button>
-      <div id="bld-${si}" style="font-size:11px;color:var(--text-muted);margin-top:3px;flex-basis:100%"></div></div>`;
+    return `<div class="fr" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <label class="fl" style="margin:0;flex:1;min-width:0">${mlEsc(st.name)}<span style="color:var(--text-muted);font-weight:400;display:block;font-size:10px;margin-top:1px">${plabel}</span></label>
+        <button class="xstore" onclick="balRemoveStore(${si})" aria-label="外す">×</button>
+      </div>
+      <input id="bl-${si}" type="number" inputmode="numeric" value="${cur}" data-prev="${prev}" oninput="blCalc()" style="margin-top:4px">
+      <div id="bld-${si}" style="font-size:11px;color:var(--text-muted);margin-top:3px"></div></div>`;
   }).join('');
   return storeRows || '<div style="font-size:12px;color:var(--text-muted);padding:6px 2px">対象の店がありません。「店を選ぶ」から追加してください。</div>';
 }
@@ -1944,7 +1947,7 @@ function renderBalanceBody(){
     const isSelf = MEMBERS[mid] && MEMBERS[mid].uid===myUid;
     document.getElementById('mbody').innerHTML=`${teamBtn}
       <div class="secbox" id="secSt">
-        <div class="sechd"><span class="st">この日の収支管理</span><button class="tlink" onclick="balEdit()">編集</button></div>
+        <div class="sechd"><span class="st">この日の収支管理${isSelf?'':'（閲覧）'}</span>${isSelf?'<button class="tlink" onclick="balEdit()">編集</button>':''}</div>
         ${balViewHtml()}
       </div>
       <div class="mlcalc" id="bl-calc"></div>`;
@@ -1973,6 +1976,12 @@ function renderBalanceBody(){
   }
   blCalc();
 }
+window.balOpenMember=function(mid){
+  balCtx.mid=mid; balTeamView=false; balNew=[]; balPick=false; balTmp=null; balTmpCash=null;
+  const isSelf = MEMBERS[mid] && MEMBERS[mid].uid===myUid;
+  balLocked = isSelf ? !!blGet(mid,balCtx.y,balCtx.mo,balCtx.day) : true;  // 他人は常に閲覧専用
+  renderBalanceBody();
+};
 window.balToTeam=function(v){
   balTeamView=v;
   if(!v){ balLocked = !!blGet(balCtx.mid,balCtx.y,balCtx.mo,balCtx.day); balNew=[]; balPick=false; balTmp=null; balTmpCash=null; }
@@ -2049,7 +2058,7 @@ window.oDayTeam=function(day){
   rows.sort((a,b)=>a.mid-b.mid||String(a.id).localeCompare(String(b.id)));
   document.getElementById('mtitle').textContent=`チーム — ${cm+1}/${day}`;
   document.getElementById('mbody').innerHTML=`
-    ${rows.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台ごと記録はまだありません</div>':''}
+    ${rows.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台記録はまだありません</div>':''}
     ${rows.map(l=>{const own=MEMBERS[l.mid]&&MEMBERS[l.mid].uid===myUid;
       return `<div style="font-size:10px;color:${own?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px;display:flex;align-items:center">${avatarMini(l.mid)}${N[l.mid]}</div>`+mlRowHtml(l,own,l.mid,day);}).join('')}
     <div style="font-size:10px;color:var(--text-muted);padding:4px 0">他メンバーの記録は閲覧のみ（編集は本人）</div>`;
@@ -2070,7 +2079,7 @@ window.oDayM=function(mid,day){
   const ls=gML(mid,cy,cm).filter(l=>l.day===day);
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day}`;
   document.getElementById('mbody').innerHTML=`
-    ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台ごと記録はまだありません</div>':''}
+    ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台記録はまだありません</div>':''}
     ${ls.map(l=>mlRowHtml(l,true,mid,day)).join('')}`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button><button class="btn p" onclick="oForm(${mid},${day},null)">＋ この日に追加</button>`;
   oM();
@@ -2091,7 +2100,7 @@ window.oForm=function(mid,day,editId){
   const logs=editId?gML(mid,cy,cm):[];
   const e=(editId?logs.find(l=>l.id===editId):null)||{}; const isEdit=!!(editId&&logs.find(l=>l.id===editId));
   mlStartLock=isEdit; mlEndLock=true; mlMemoLock=isEdit; // 新規=開始時とメモが編集可・終了時ロック／編集時=全ロック
-  document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台ごと記録`;
+  document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録`;
   const sOpts=S.map((s,i)=>`<option value="${i}"${i===(e.storeIdx||0)?' selected':''}>${s.name}</option>`).join('');
   const pt=e.playType||'setting';
   document.getElementById('mbody').innerHTML=`
@@ -2358,7 +2367,7 @@ function confirmBox(msg, onYes, opts){
   document.getElementById('cfNo').onclick=()=>{ bg.className='modal-bg'; };
   document.getElementById('cfYes').onclick=()=>{ bg.className='modal-bg'; if(onYes) onYes(); };
 }
-window.delE=function(mid,id){ confirmBox('この台ごと記録を削除しますか？\nこの操作は元に戻せません。', ()=>{ deleteMLog(id); cM(); }); };
+window.delE=function(mid,id){ confirmBox('この台記録を削除しますか？\nこの操作は元に戻せません。', ()=>{ deleteMLog(id); cM(); }); };
 
 window.oSet=function(){
   document.getElementById('mtitle').textContent='設定';
@@ -2367,7 +2376,7 @@ window.oSet=function(){
   // 店舗・レート
   const storeView = stEdit
     ? S.map((s,i)=>`<div style="background:var(--surface-1);border-radius:var(--radius);padding:9px;margin-bottom:7px">
-        <div class="fr" style="margin-bottom:7px"><label class="fl">店舗名</label><input id="ssn${i}" value="${s.name}"></div>
+        <div class="fr" style="margin-bottom:7px"><label class="fl">店舗名</label><input id="ssn${i}" value="${(s.name||'').replace(/"/g,'&quot;')}" placeholder="店舗名"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
           <div>
             <div class="flwrap"><span class="fl" style="margin:0">貸しメダル</span><span class="imark" onclick="tgInfo('si_mp${i}')">i</span></div>
@@ -2403,7 +2412,7 @@ window.oSet=function(){
     <button class="imp-btn" onclick="importLocal()">この端末の旧データ(localStorage)を取り込む</button>`;
   const dangerSection = leader ? `<div class="stlabel" style="margin-top:18px">データ管理（リーダー）</div>
     <div style="font-size:10px;color:var(--text-muted);margin:0 0 8px;line-height:1.6">テストが終わったら、ここで記録を消してまっさらな状態から始められます。チーム・メンバー・店舗・初期現金・初期メダルは残ります。</div>
-    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台ごと記録・収支管理・給与）</button>` : '';
+    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・給与）</button>` : '';
   document.getElementById('mbody').innerHTML = storeSection + cashSection + memberSection + codeSection + dangerSection;
   document.getElementById('mfoot').innerHTML = stEdit
     ? `<button class="btn" onclick="cancelSt()">キャンセル</button><button class="btn p" onclick="svSet()">保存</button>`
@@ -2412,7 +2421,7 @@ window.oSet=function(){
 };
 window.resetRecords=async function(){
   if(!isLeader()){ alert('リセットはリーダーのみ実行できます'); return; }
-  if(!confirm('テストで貯まった記録をすべて削除します。\n\n・台ごと記録\n・収支管理\n・給与支払い\n\nチーム / メンバー / 店舗 / 初期現金 / 初期メダルは残ります。\n\n実行しますか？')) return;
+  if(!confirm('テストで貯まった記録をすべて削除します。\n\n・台記録\n・収支管理\n・給与支払い\n\nチーム / メンバー / 店舗 / 初期現金 / 初期メダルは残ります。\n\n実行しますか？')) return;
   if(!confirm('この操作は取り消せません。本当に全記録を削除しますか？')) return;
   if(typeof mlogsCol==='undefined' || !mlogsCol){
     ML={}; BL={}; SL={}; selDay=null;
@@ -2443,7 +2452,7 @@ window.svCash=async function(){
 };
 window.cancelSt=function(){ stEdit=false; oSet(); };
 window.rmSt=function(i){ if(S.length<=1){alert('店舗は最低1つ必要です');return;} readStoreInputs(); if(!confirm(S[i].name+' を削除しますか？')) return; S.splice(i,1); oSet(); };
-window.addSt=function(){ readStoreInputs(); S.push({name:'新しい店舗',mp:46,rate:5.16}); stEdit=true; oSet(); };
+window.addSt=function(){ readStoreInputs(); S.push({name:'',mp:46,rate:5.16}); stEdit=true; oSet(); };
 
 window.svSet=async function(){
   readStoreInputs();
