@@ -421,10 +421,10 @@ body.modal-open #wrap{overflow:hidden!important}
 @keyframes fabFadeOutBL{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(7px,-7px) scale(.8)}}
 .salmark{position:absolute;top:5px;left:6px;width:7px;height:7px;border-radius:2px;background:#6c63ff;z-index:5}
 .dmarks{position:absolute;top:5px;left:6px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:5}
-.dmark{width:7px;height:7px;border-radius:2px;line-height:1}
+.dmark{width:5px;height:5px;border-radius:1.5px;line-height:1}
 .dmark.sal{background:#6c63ff}
 .dmark.bal{background:#ffc83d}
-.dmark.inc{width:auto;height:auto;border-radius:0;color:#8e8e93;font-size:11px;font-weight:700;margin-top:-1px}
+.dmark.inc{width:auto;height:auto;border-radius:0;color:#8e8e93;font-size:10px;font-weight:700;margin-top:-1px}
 .avmini{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;min-width:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-success);font-size:10px;font-weight:700;overflow:hidden;vertical-align:middle;margin-right:5px}
 .avmini img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .ma img{width:100%;height:100%;object-fit:cover;border-radius:50%}
@@ -922,7 +922,7 @@ function blDayHas(mid,y,mo,day){return !!blGet(mid,y,mo,day)}
 // カレンダーセルのマーク（上から：紫＝給与／黄＝収支管理／グレー＊＝記録途中）
 function dayMarksHtml(day, mid){
   let h='';
-  if(mid==null && salaryHas(cy,cm,day)) h+='<span class="dmark sal" title="給与支払い"></span>';
+  if(salaryHas(cy,cm,day)) h+='<span class="dmark sal" title="給与支払い"></span>';
   const balHas = (mid!=null) ? blDayHas(mid,cy,cm,day) : N.some((_,m)=>blDayHas(m,cy,cm,day));
   if(balHas) h+='<span class="dmark bal" title="収支管理"></span>';
   const incHas = (mid!=null)
@@ -1709,7 +1709,7 @@ function balTeamHtml(){
     const isMe=MEMBERS[mid]&&MEMBERS[mid].uid===myUid;
     return `<div class="secbox" style="margin-bottom:9px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:13px;font-weight:600;color:${isMe?'var(--text-success)':'#c7c7cc'}">${nm}${isMe?' <span style="font-size:10px;color:var(--text-muted)">あなた</span>':''}</span>
+        <span style="font-size:13px;font-weight:600;color:${isMe?'var(--text-success)':'#c7c7cc'};display:inline-flex;align-items:center">${avatarMini(mid)}${nm}${isMe?' <span style="font-size:10px;color:var(--text-muted);margin-left:4px">あなた</span>':''}</span>
         <span style="font-size:13px;font-weight:600;color:${drCol};font-variant-numeric:tabular-nums">${dr>=0?'+':''}${dr.toLocaleString()}円</span>
       </div>${body}</div>`;
   }).join('');
@@ -1852,7 +1852,7 @@ window.oDayTeam=function(day){
   document.getElementById('mbody').innerHTML=`
     ${rows.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台ごと記録はまだありません</div>':''}
     ${rows.map(l=>{const own=MEMBERS[l.mid]&&MEMBERS[l.mid].uid===myUid;
-      return `<div style="font-size:10px;color:${own?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px">${N[l.mid]}</div>`+mlRowHtml(l,own,l.mid,day);}).join('')}
+      return `<div style="font-size:10px;color:${own?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px;display:flex;align-items:center">${avatarMini(l.mid)}${N[l.mid]}</div>`+mlRowHtml(l,own,l.mid,day);}).join('')}
     <div style="font-size:10px;color:var(--text-muted);padding:4px 0">他メンバーの記録は閲覧のみ（編集は本人）</div>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button><button class="btn p" onclick="oForm(${myMid()},${day},null)">＋ 自分の記録を追加</button>`;
   oM();
