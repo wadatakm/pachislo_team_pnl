@@ -416,6 +416,9 @@ body.modal-open #wrap{overflow:hidden!important}
 .dayfab.bal svg{stroke-width:2.4}
 .dayfab.pay{background:rgba(124,116,255,.22);text-shadow:0 0 2px rgba(40,34,120,.95),0 1px 1.5px rgba(0,0,0,.6)}
 .cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:flex-end;gap:26px;z-index:60;pointer-events:none}
+.storepick{display:block;width:100%;text-align:left;background:var(--surface-2);border:0.5px solid var(--border);color:var(--text-primary);font-size:14px;border-radius:10px;padding:12px 14px;margin-bottom:7px;cursor:pointer}
+.storepick.add{color:var(--text-success);font-weight:600}
+.xstore{flex:none;width:28px;height:28px;border-radius:50%;border:0.5px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer}
 .cfabbar .cfab{pointer-events:auto}
 .cfab{width:46px;height:46px;font-size:23px}
 .cfab.side{margin-bottom:0}
@@ -622,6 +625,7 @@ let mlogDocs = []; // 台ごと記録の生データ（uid付き・分析専用�
 let ML = {};       // mid_年_月 → [台ログ...]（rebuildMLで構築）
 let BL = {};       // mid_YYYY-MM-DD → {stored:{店idx:絶対枚数}, cashIn:現金投資合計}（収支管理・残高の出どころ）
 let balNew = [];   // 収支管理モーダルで一時的に追加する新規店名
+let balPick=false, balTmp=null, balTmpCash=null;   // 店選択ピッカー・入力中値の保持
 let SL = {};       // YYYY-MM-DD → {uid:円}（給与支払い・現金残高のみ減算／収支には不算入）
 // 表示中の年月は「各自の閲覧位置」なので共有せずローカル保持
 let lv = JSON.parse(localStorage.getItem('view')||'null');
@@ -920,6 +924,24 @@ function gYears(){const ys=new Set([cy]);Object.keys(D).forEach(k=>{const p=k.sp
 // ============================================================
 function getMedalKey(mid,si){return`${MEMBERS[mid]?.uid||mid}_${si}`}
 function getBaseMedal(mid,si){return MI[`base_${getMedalKey(mid,si)}`]||0}
+// 貯メダル対象店リスト（メンバーごと・MIに sel_{uid} で保持）。50音順で返す
+function selKey(mid){ return 'sel_'+(MEMBERS[mid]?.uid||mid); }
+function jpSort(arr){ return arr.slice().sort((a,b)=>(S[a]?.name||'').localeCompare(S[b]?.name||'','ja')); }
+function selStores(mid){
+  let arr = Array.isArray(MI[selKey(mid)]) ? MI[selKey(mid)].slice() : null;
+  if(!arr){   // 移行：初期枚数>0 か 収支管理に記録のある店を自動で対象に
+    const set=new Set();
+    S.forEach((_,si)=>{ if(getBaseMedal(mid,si)>0) set.add(si); });
+    Object.keys(BL).forEach(k=>{ if(k.split('_')[0]===String(mid)){ const st=BL[k].stored||{}; Object.keys(st).forEach(si=>{ if(st[si]!=null) set.add(+si); }); } });
+    arr=[...set];
+  }
+  arr = arr.filter(si=>si>=0 && si<S.length);
+  return jpSort(arr);
+}
+function setSelStores(mid,arr){ MI[selKey(mid)] = arr.slice(); }
+function addSelStore(mid,si){ const a=selStores(mid); if(!a.includes(si)){ a.push(si); setSelStores(mid,a); saveMedals(); } }
+function removeSelStore(mid,si){ setSelStores(mid, selStores(mid).filter(x=>x!==si)); saveMedals(); }
+function unselStores(mid){ const sel=selStores(mid); return jpSort(S.map((_,si)=>si).filter(si=>!sel.includes(si))); }
 // ===== 収支管理（残高の出どころ） =====
 function dstr(y,mo,day){return `${y}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`}
 function blGet(mid,y,mo,day){return BL[`${mid}_${dstr(y,mo,day)}`]||null}
@@ -1105,7 +1127,7 @@ function dayfab3Btn(onclick){
 }
 
 function renderTabs(){
-  const labels=['チームカレンダー','個人別カレンダー','貯メダル','収支分析','稼働一覧'];
+  const labels=['チームカレンダー','個人別カレンダー','貯メダル','稼働一覧','収支分析'];
   const t=labels.map((n,i)=>`<div class="tab${tab===i?' active':''}" onclick="st(${i})">${n}</div>`).join('');
   document.getElementById('tabs').innerHTML =
     `<div class="tabscroll" id="tabscroll">${t}</div>`+
@@ -1165,8 +1187,8 @@ function renderViews(){
     rMember(el,calSel);
   }
   else if(tab===2)rMedal(el);
-  else if(tab===3)rAnalysis(el);
-  else rWorkLog(el);
+  else if(tab===3)rWorkLog(el);
+  else rAnalysis(el);
 }
 
 function detStr(e){
@@ -1341,7 +1363,7 @@ function rMedal(container){
   div.className='viewscroll';
   // チームの貯メダル合計枚数（＋円換算は参考表示）
   let teamMedals=0, teamMedalYen=0;
-  N.forEach((_,mid)=>{ S.forEach((st,si)=>{ const cur=getCurrentMedal(mid,si); teamMedals+=cur; teamMedalYen+=mY(cur,si); }); });
+  N.forEach((_,mid)=>{ selStores(mid).forEach((si)=>{ const cur=getCurrentMedal(mid,si); teamMedals+=cur; teamMedalYen+=mY(cur,si); }); });
   div.innerHTML=`
     <div class="topbar">
       <span class="topbar-title">貯メダル管理</span>
@@ -1353,11 +1375,12 @@ function rMedal(container){
     <div style="padding:8px 16px;color:var(--text-muted);font-size:11px">残高 ＝ 収支管理で記録した最新の貯メダル枚数。初期枚数（記録がない場合の出発点）は<button class="inlink" onclick="oBaseMedal()">こちら</button>から変更できます。</div>
     <div class="medal-sec">
       ${N.map((name,mid)=>{
-        let mMed=0,mYen=0; S.forEach((st,si)=>{const cur=getCurrentMedal(mid,si);mMed+=cur;mYen+=mY(cur,si);});
+        let mMed=0,mYen=0; selStores(mid).forEach((si)=>{const cur=getCurrentMedal(mid,si);mMed+=cur;mYen+=mY(cur,si);});
         return `
         <div class="medal-member">
           <div class="medal-member-name" style="display:flex;align-items:center">${avatarMini(mid)}${name}${MEMBERS[mid]&&MEMBERS[mid].uid===myUid?'<span class="you" style="font-size:10px;color:var(--text-muted);margin-left:6px">あなた</span>':''}</div>
-          ${S.map((st,si)=>{
+          ${selStores(mid).map((si)=>{
+            const st=S[si];
             const current=getCurrentMedal(mid,si),yen=mY(current,si);
             const info=storedAsOfInfo(mid,si,'9999-99-99',true);   // 最新入力（日付つき）
             const prev=info.date?storedAsOf(mid,si,info.date,false):null; // その一つ前
@@ -1686,33 +1709,66 @@ function syncCfab(){
   }
 }
 
-// 貯メダルの初期枚数（自分の、店舗ごと）を編集
+// 貯メダルの初期枚数（自分の・対象店だけ）を編集
+let baseMedalView='edit';
 window.oBaseMedal=function(){
   const mid=(myUid!=null)?uidToMid[myUid]:null;
   if(mid==null){ alert('メンバー情報が読み込めていません'); return; }
+  baseMedalView='edit'; renderBaseMedal(mid); oM();
+};
+function bmMid(){ return (myUid!=null)?uidToMid[myUid]:null; }
+function captureBaseInputs(mid){ selStores(mid).forEach(si=>{ const el=document.getElementById('bm-'+si); if(el&&el.value!=='') MI[`base_${getMedalKey(mid,si)}`]=parseFloat(el.value)||0; }); }
+function renderBaseMedal(mid){
   document.getElementById('mtitle').textContent='貯メダルの初期枚数';
+  if(baseMedalView==='pick'){
+    const rest=unselStores(mid);
+    document.getElementById('mbody').innerHTML=`
+      <button class="tlink mut" onclick="baseMedalBack()" style="margin-bottom:10px">‹ 戻る</button>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">追加する店を選んでください</div>
+      ${rest.length?rest.map(si=>`<button class="storepick" onclick="baseMedalAdd(${si})">${mlEsc(S[si].name)}</button>`).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 2px">追加できる店がありません</div>'}
+      <button class="storepick add" onclick="baseMedalNew()">＋ 新しい店を追加</button>`;
+    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="baseMedalBack()">戻る</button>`;
+    return;
+  }
+  const sel=selStores(mid);
   document.getElementById('mbody').innerHTML=`
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">このアプリを使い始めた時点で、各店舗に預けている貯メダルの枚数を入力してください。これは収支（勝ち負け）には足さず、残高の出発点として使います。</div>
-    ${S.map((st,si)=>`<div class="fr"><label class="fl">${st.name}</label>
-      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}"></div>`).join('')}
-    <button class="btn" style="width:100%;margin-top:3px" onclick="addStoreFromBase()">＋ 店舗を追加</button>`;
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">使い始めた時点で各店に預けている貯メダルの枚数を入力してください。収支には足さず、残高の出発点として使います。対象の店だけ表示されます。</div>
+    ${sel.length?sel.map(si=>`<div class="fr" style="display:flex;align-items:center;gap:8px"><label class="fl" style="flex:1;margin:0">${mlEsc(S[si].name)}</label>
+      <input id="bm-${si}" type="number" inputmode="numeric" placeholder="0" value="${getBaseMedal(mid,si)||''}" style="flex:1.1">
+      <button class="xstore" onclick="baseMedalRemove(${si})" aria-label="外す">×</button></div>`).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 2px">対象の店がありません。下の「店を選ぶ」から追加してください。</div>'}
+    <button class="btn" style="width:100%;margin-top:6px" onclick="baseMedalToPick()">＋ 店を選ぶ</button>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="oProfile()">キャンセル</button><button class="btn p" onclick="svBaseMedal()">保存</button>`;
-  oM();
-};
-window.svBaseMedal=function(){
-  const mid=(myUid!=null)?uidToMid[myUid]:null; if(mid==null) return;
-  S.forEach((st,si)=>{ MI[`base_${getMedalKey(mid,si)}`]=parseFloat(document.getElementById(`bm-${si}`)?.value)||0; });
-  saveMedals(); oProfile();
-};
-window.addStoreFromBase=async function(){
-  const name=(prompt('新しい店舗名を入力してください')||'').trim();
-  if(!name) return;
-  const mid=(myUid!=null)?uidToMid[myUid]:null;
-  if(mid!=null) S.forEach((st,si)=>{ const el=document.getElementById('bm-'+si); if(el&&el.value!=='') MI[`base_${getMedalKey(mid,si)}`]=parseFloat(el.value)||0; }); // 入力中の値を保持
-  S.push({name, mp:46, rate:5.16});
+}
+window.baseMedalToPick=function(){ const mid=bmMid(); captureBaseInputs(mid); baseMedalView='pick'; renderBaseMedal(mid); };
+window.baseMedalBack=function(){ baseMedalView='edit'; renderBaseMedal(bmMid()); };
+window.baseMedalAdd=function(si){ const mid=bmMid(); addSelStore(mid,si); baseMedalView='edit'; renderBaseMedal(mid); };
+window.baseMedalRemove=function(si){ const mid=bmMid(); captureBaseInputs(mid); removeSelStore(mid,si); renderBaseMedal(mid); };
+window.baseMedalNew=function(){ openNewStoreForm((si)=>{ const mid=bmMid(); if(si!=null){ addSelStore(mid,si); baseMedalView='edit'; } else { baseMedalView='pick'; } renderBaseMedal(mid); }); };
+window.svBaseMedal=function(){ const mid=bmMid(); if(mid==null)return; captureBaseInputs(mid); saveMedals(); oProfile(); };
+// 新しい店の追加フォーム（店名＋貸しメダル＋交換率・デフォルト値入り）。共通で使う
+let newStoreReturn=null;
+function openNewStoreForm(returnFn){
+  newStoreReturn=returnFn;
+  document.getElementById('mtitle').textContent='新しい店を追加';
+  document.getElementById('mbody').innerHTML=`
+    <div class="fr"><label class="fl">店名</label><input id="ns-name" type="text" placeholder="店名" autocomplete="off"></div>
+    <div class="fr"><label class="fl">貸しメダル（1000円 → 何枚）</label><input id="ns-mp" type="number" inputmode="numeric" value="46"></div>
+    <div class="fr"><label class="fl">交換率（何枚 → 100円）</label><input id="ns-rate" type="number" inputmode="decimal" step="0.01" value="5.16"></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px">あとから設定（⚙）でも変更できます。</div>`;
+  document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="newStoreCancel()">戻る</button><button class="btn p" onclick="newStoreSave()">追加</button>`;
+  setTimeout(()=>{ const el=document.getElementById('ns-name'); if(el) el.focus(); }, 50);
+}
+window.newStoreSave=async function(){
+  const name=(document.getElementById('ns-name')?.value||'').trim();
+  if(!name){ alert('店名を入力してください'); return; }
+  const mp=parseFloat(document.getElementById('ns-mp')?.value)||46;
+  const rate=parseFloat(document.getElementById('ns-rate')?.value)||5.16;
+  S.push({name, mp, rate});
   await saveConfig();
-  oBaseMedal();   // 新しい店舗の入力欄を増やして再描画
+  const si=S.length-1, fn=newStoreReturn; newStoreReturn=null;
+  if(fn) fn(si);
 };
+window.newStoreCancel=function(){ const fn=newStoreReturn; newStoreReturn=null; if(fn) fn(null); };
 
 // ===== 給与支払いモーダル（履歴＋編集ロック式） =====
 let salCtx={y:null,mo:null,day:null}; let salView='history'; let salLocked=false;
@@ -1818,7 +1874,7 @@ window.delBalance=function(){
   }, {yes:'削除', yesClass:'danger'});
 };
 window.openBalance=function(mid,day){
-  balCtx={mid,y:cy,mo:cm,day}; balNew=[]; balTeamView=true;   // まず全員一覧から
+  balCtx={mid,y:cy,mo:cm,day}; balNew=[]; balTeamView=true; balPick=false; balTmp=null; balTmpCash=null;   // まず全員一覧から
   balLocked = !!blGet(mid,cy,cm,day);
   renderBalanceBody();
   oM();
@@ -1847,18 +1903,19 @@ function balTeamHtml(){
 function balRowsHtml(){
   const {mid,y,mo,day}=balCtx; const ds=dstr(y,mo,day);
   const exist=blGet(mid,y,mo,day);
-  const storeRows=S.map((st,si)=>{
+  const sel=selStores(mid);
+  const storeRows=sel.map((si)=>{
+    const st=S[si];
     const pinfo=storedAsOfInfo(mid,si,ds,false);            // 直近の入力日（その日より前）
     const prev=pinfo.val; const plabel=pinfo.date?`前回(${mdLabel(pinfo.date)}) ${prev.toLocaleString()}枚`:`初期 ${prev.toLocaleString()}枚`;
-    const cur=(exist&&exist.stored[si]!=null)?exist.stored[si]:prev;
-    return `<div class="fr" style="margin-bottom:9px"><label class="fl">${mlEsc(st.name)}<span style="color:var(--text-muted);font-weight:400"> ・${plabel}</span></label>
-      <input id="bl-${si}" type="number" inputmode="numeric" value="${cur}" data-prev="${prev}" oninput="blCalc()">
-      <div id="bld-${si}" style="font-size:11px;color:var(--text-muted);margin-top:3px"></div></div>`;
+    let cur=(exist&&exist.stored[si]!=null)?exist.stored[si]:prev;
+    if(balTmp&&balTmp[si]!=null) cur=balTmp[si];            // 店選択を行き来しても入力中の値を保持
+    return `<div class="fr" style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><label class="fl" style="flex:1;margin:0">${mlEsc(st.name)}<span style="color:var(--text-muted);font-weight:400;display:block;font-size:10px"> ${plabel}</span></label>
+      <input id="bl-${si}" type="number" inputmode="numeric" value="${cur}" data-prev="${prev}" oninput="blCalc()" style="flex:1.1">
+      <button class="xstore" onclick="balRemoveStore(${si})" aria-label="外す">×</button>
+      <div id="bld-${si}" style="font-size:11px;color:var(--text-muted);margin-top:3px;flex-basis:100%"></div></div>`;
   }).join('');
-  const newRows=balNew.map((nm,ni)=>`<div class="fr" style="margin-bottom:9px"><label class="fl">新規店</label>
-    <input id="bln-name-${ni}" type="text" placeholder="店名" value="${mlEsc(nm)}" style="margin-bottom:6px">
-    <input id="bln-med-${ni}" type="number" inputmode="numeric" placeholder="貯メダル枚数" oninput="blCalc()"></div>`).join('');
-  return storeRows+newRows;
+  return storeRows || '<div style="font-size:12px;color:var(--text-muted);padding:6px 2px">対象の店がありません。「店を選ぶ」から追加してください。</div>';
 }
 function balViewHtml(){
   const {mid,y,mo,day}=balCtx; const ds=dstr(y,mo,day); const exist=blGet(mid,y,mo,day)||{stored:{},cashIn:0};
@@ -1892,15 +1949,24 @@ function renderBalanceBody(){
       </div>
       <div class="mlcalc" id="bl-calc"></div>`;
     document.getElementById('mfoot').innerHTML=`${isSelf?'<button class="btn danger" onclick="delBalance()">この日を削除</button>':''}<button class="btn" onclick="cM()">閉じる</button>`;
+  }else if(balPick){
+    const rest=unselStores(mid);
+    document.getElementById('mbody').innerHTML=`${teamBtn}
+      <button class="tlink mut" onclick="balPickBack()" style="margin-bottom:10px">‹ 戻る</button>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">追加する店を選んでください</div>
+      ${rest.length?rest.map(si=>`<button class="storepick" onclick="balPickAdd(${si})">${mlEsc(S[si].name)}</button>`).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 2px">追加できる店がありません</div>'}
+      <button class="storepick add" onclick="balPickNew()">＋ 新しい店を追加</button>`;
+    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="balPickBack()">戻る</button>`;
+    return;
   }else{
     document.getElementById('mbody').innerHTML=`${teamBtn}
-      <div class="secbox" id="secSt"><div class="sechd"><span class="st">貯メダル残高（店ごと・その日の終わり）</span></div>
+      <div class="secbox" id="secSt"><div class="sechd"><span class="st">貯メダル残高（対象店・その日の終わり）</span></div>
         ${balRowsHtml()}
-        <button class="tlink" onclick="addBalStore()" style="margin-top:2px">＋ 店を追加</button>
+        <button class="tlink" onclick="balToStorePick()" style="margin-top:2px">＋ 店を選ぶ</button>
       </div>
       <div class="secbox" id="secEn"><div class="sechd"><span class="st">現金</span></div>
         <div class="fr"><label class="fl">その日の現金投資 合計（円）</label>
-          <input id="bl-cash" type="number" inputmode="numeric" placeholder="0" value="${(blGet(mid,y,mo,day)?.cashIn)||''}" oninput="blCalc()"></div>
+          <input id="bl-cash" type="number" inputmode="numeric" placeholder="0" value="${balTmpCash!=null?balTmpCash:((blGet(mid,y,mo,day)?.cashIn)||'')}" oninput="blCalc()"></div>
       </div>
       <div class="mlcalc" id="bl-calc"></div>`;
     document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">キャンセル</button><button class="btn p" onclick="svBalance()">保存</button>`;
@@ -1909,9 +1975,15 @@ function renderBalanceBody(){
 }
 window.balToTeam=function(v){
   balTeamView=v;
-  if(!v){ balLocked = !!blGet(balCtx.mid,balCtx.y,balCtx.mo,balCtx.day); balNew=[]; }
+  if(!v){ balLocked = !!blGet(balCtx.mid,balCtx.y,balCtx.mo,balCtx.day); balNew=[]; balPick=false; balTmp=null; balTmpCash=null; }
   renderBalanceBody();
 };
+function captureBalInputs(){ const mid=balCtx.mid; balTmp=balTmp||{}; selStores(mid).forEach(si=>{ const el=document.getElementById('bl-'+si); if(el) balTmp[si]=el.value; }); const c=document.getElementById('bl-cash'); if(c) balTmpCash=c.value; }
+window.balToStorePick=function(){ captureBalInputs(); balPick=true; renderBalanceBody(); };
+window.balPickBack=function(){ balPick=false; renderBalanceBody(); };
+window.balPickAdd=function(si){ const mid=balCtx.mid; addSelStore(mid,si); balPick=false; renderBalanceBody(); };
+window.balPickNew=function(){ openNewStoreForm((si)=>{ if(si!=null){ addSelStore(balCtx.mid,si); balPick=false; } else { balPick=true; } renderBalanceBody(); }); };
+window.balRemoveStore=function(si){ captureBalInputs(); if(balTmp) delete balTmp[si]; removeSelStore(balCtx.mid,si); renderBalanceBody(); };
 window.balEdit=function(){ balLocked=false; renderBalanceBody(); };
 window.addBalStore=function(){
   S.forEach((st,si)=>{ const el=document.getElementById(`bl-${si}`); if(el) st.__tmp=el.value; });
@@ -1954,12 +2026,8 @@ window.blCalc=function(){
 };
 window.svBalance=function(){
   const {mid,y,mo,day}=balCtx; const ds=dstr(y,mo,day);
-  const stored={};
-  S.forEach((st,si)=>{ const el=document.getElementById(`bl-${si}`); if(el&&el.value!=='') stored[si]=parseFloat(el.value)||0; });
-  let added=false;
-  balNew.forEach((_,ni)=>{ const n=document.getElementById(`bln-name-${ni}`); const m=document.getElementById(`bln-med-${ni}`);
-    const name=n?n.value.trim():''; if(name){ S.push({name,mp:46,rate:5.16}); stored[S.length-1]=m?(parseFloat(m.value)||0):0; added=true; } });
-  if(added) saveConfig();
+  const prev=blGet(mid,y,mo,day); const stored = prev?Object.assign({},prev.stored):{};   // 既存の記録を引き継ぐ
+  selStores(mid).forEach((si)=>{ const el=document.getElementById(`bl-${si}`); if(el&&el.value!=='') stored[si]=parseFloat(el.value)||0; });
   const cashIn=parseFloat(document.getElementById('bl-cash')?.value)||0;
   BL[`${mid}_${ds}`]={stored,cashIn};
   saveBalance(mid,ds,{stored,cashIn});
@@ -2452,7 +2520,7 @@ window.oProfile=function(){
     </div>
     <div class="pcard-t" style="padding:0 2px">貯メダル（現在）</div>
     <div class="pcard">
-      ${mm!=null?`<div class="medlist">${S.map((st,si)=>`<div class="medrow"><span class="medst">${st.name}</span><span class="medval"><b>${getCurrentMedal(mm,si).toLocaleString()}</b>枚<span class="yy">≈${mY(getCurrentMedal(mm,si),si).toLocaleString()}円</span></span></div>`).join('')}</div>`:''}
+      ${mm!=null?`<div class="medlist">${selStores(mm).map((si)=>`<div class="medrow"><span class="medst">${mlEsc(S[si].name)}</span><span class="medval"><b>${getCurrentMedal(mm,si).toLocaleString()}</b>枚<span class="yy">≈${mY(getCurrentMedal(mm,si),si).toLocaleString()}円</span></span></div>`).join('')||'<div style="font-size:12px;color:var(--text-muted)">対象の店がありません</div>'}</div>`:''}
       <div class="prow2" style="margin-top:11px;border-top:0.5px solid var(--border);padding-top:10px"><div><div style="font-size:12px">初期枚数</div><div style="font-size:10px;color:var(--text-muted)">使い始め時点の枚数（店舗ごと）</div></div><button class="tlink" onclick="oBaseMedal()">編集</button></div>
     </div>
     <div class="pcard-t" style="padding:0 2px">チーム</div>
