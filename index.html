@@ -355,8 +355,12 @@ body.modal-open #wrap{overflow:hidden!important}
 /* 稼働一覧 */
 .wlbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px 2px}
 .wlcount{font-size:12px;color:var(--text-muted);font-weight:600}
-.wltgl{font-size:11px;padding:3px 10px;border:0.5px solid var(--border-strong);border-radius:999px;background:var(--surface-2);color:var(--text-secondary);cursor:pointer}
-.wltgl.on{background:var(--text-success);border-color:var(--text-success);color:#00150d;font-weight:700}
+.swwrap{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.swlbl{font-size:11px;color:var(--text-secondary)}
+.sw{width:38px;height:22px;border-radius:999px;background:#3a3a3c;border:none;padding:0;position:relative;cursor:pointer;transition:background .18s;flex:none}
+.sw .swk{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .18s}
+.sw.on{background:var(--text-success)}
+.sw.on .swk{left:18px}
 .wllist{display:flex;flex-direction:column;gap:9px}
 .wlrow{background:rgba(255,255,255,.03);border:0.5px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer}
 .wlrow:active{background:rgba(255,255,255,.06)}
@@ -411,6 +415,10 @@ body.modal-open #wrap{overflow:hidden!important}
 .dayfab.bal{background:rgba(245,197,24,.2);text-shadow:0 0 2px rgba(90,68,0,.95),0 1px 1.5px rgba(0,0,0,.6)}
 .dayfab.bal svg{stroke-width:2.4}
 .dayfab.pay{background:rgba(124,116,255,.22);text-shadow:0 0 2px rgba(40,34,120,.95),0 1px 1.5px rgba(0,0,0,.6)}
+.cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:center;gap:24px;z-index:60;pointer-events:none}
+.cfabbar .cfab{pointer-events:auto}
+.cfab{width:48px;height:48px;font-size:24px}
+.cfab.big{width:62px;height:62px;font-size:31px}
 /* 入場：ふわっとフェードしながら少し広がる／退場：フェードして中心へ */
 .dayfab.anim-in{animation:fabFadeTR .5s cubic-bezier(.2,.6,.3,1) both}
 .dayfab.bal.anim-in{animation-name:fabFadeBR;animation-delay:.05s}
@@ -1255,14 +1263,9 @@ function rTeam(container){
       for(let b=0;b<first;b++) out.push('<div class="cc emp"></div>');
       for(let i=0;i<days;i++){
         const day=i+1,dow=(first+i)%7,info=byDay[day],isT=isNow&&today.getDate()===day,isS=selDay===day;
-        const fab=isS?dayfabBtn('編集・追加',`oDayTeam(${day})`,false,dow):'';
-        const fab2=isS?dayfab2Btn(`openBalance(${myMid()},${day})`):'';
-        const fab3=(isS&&isLeader())?dayfab3Btn(`openSalary(${day})`):'';
         const sal=dayMarksHtml(day);
-        out.push(`<div class="cc${info?' hd':''}${isT?' tod':''}${isS?' sel':''}${isS&&fabAnim?' selin':''}"${isS?' style="position:relative;z-index:10"':''} onclick="pickDay(${day})">${sal}<div class="dn${dow===0?' s':dow===6?' sa':''}">${day}</div>${info?`<div class="ct ${c(info.real)}">${f(info.real)}</div><div class="csub" style="font-size:8px">${[...info.ms].map(id=>N[id]).join('・')}</div>`:''}${fab}${fab2}${fab3}</div>`);
+        out.push(`<div class="cc${info?' hd':''}${isT?' tod':''}${isS?' sel':''}${isS&&fabAnim?' selin':''}"${isS?' style="position:relative;z-index:10"':''} onclick="pickDay(${day})">${sal}<div class="dn${dow===0?' s':dow===6?' sa':''}">${day}</div>${info?`<div class="ct ${c(info.real)}">${f(info.real)}</div><div class="csub" style="font-size:8px">${[...info.ms].map(id=>N[id]).join('・')}</div>`:''}</div>`);
       }
-      const trail=(7-((first+days)%7))%7;
-      if(trail>0) out.push(`<button class="todayquick" style="grid-column:span ${trail}" onclick="todayQuick()"><span class="tqp">＋</span>本日の登録</button>`);
       return out.join('');
     })()}</div>
     <div class="scrollarea">
@@ -1285,6 +1288,11 @@ function rTeam(container){
         </div>`;
       }).join('')}
     </div>
+    </div>
+    <div class="cfabbar">
+      <button class="dayfab pay cfab" onclick="qSalary()" aria-label="給与"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg></button>
+      <button class="dayfab cfab big" onclick="qAdd()" aria-label="記録を追加">＋</button>
+      <button class="dayfab bal cfab" onclick="qBal()" aria-label="収支管理"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6V6"/><path d="M5 10v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/><path d="M5 14v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/></svg></button>
     </div>`;
   container.appendChild(div);
 }
@@ -1579,7 +1587,7 @@ function rWorkLog(container){
   div.innerHTML=`
     <div class="topbar"><span class="topbar-title">稼働一覧</span><span class="topbar-val ${c(total)}">${f(total)}</span></div>
     ${wlFilterBar()}
-    <div class="wlbar"><span class="wlcount">${rows.length}件</span><button class="wltgl${wlOnlyOpen?' on':''}" onclick="wlToggleOpen()">記録中のみ</button><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
+    <div class="wlbar"><span class="wlcount">${rows.length}件</span><label class="swwrap"><span class="swlbl">記録中のみ</span><button class="sw${wlOnlyOpen?' on':''}" role="switch" aria-checked="${wlOnlyOpen}" onclick="wlToggleOpen()"><span class="swk"></span></button></label><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
     <div class="asec">
       ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':`<div class="wllist">${rows.map(wlRow).join('')}</div>`}
     </div>`;
@@ -1595,6 +1603,12 @@ window.sGM=function(m){gMode=m;ra()}
 window.sGMon=function(v){gMon=+v;ra()}
 window.chM=function(d){cm+=d;if(cm>11){cm=0;cy++}if(cm<0){cm=11;cy--}selDay=null;saveView();ra()}
 window.todayQuick=function(){ const t=new Date(); cy=t.getFullYear(); cm=t.getMonth(); selDay=t.getDate(); saveView(); ra(); oDayTeam(t.getDate()); };
+// 下部ボタンバー：対象日＝選択日、無ければ本日（必要なら本日の月へ移動）
+function qTargetDay(){ if(selDay) return {y:cy,mo:cm,day:selDay,jump:false}; const t=new Date(); return {y:t.getFullYear(),mo:t.getMonth(),day:t.getDate(),jump:true}; }
+function qGo(t){ if(t.jump){ cy=t.y; cm=t.mo; selDay=null; saveView(); ra(); } }
+window.qAdd=function(){ const t=qTargetDay(); qGo(t); oDayTeam(t.day); };
+window.qBal=function(){ const t=qTargetDay(); qGo(t); openBalance(myMid(),t.day); };
+window.qSalary=function(){ const t=qTargetDay(); qGo(t); openSalary(t.day); };
 
 // 貯メダルの初期枚数（自分の、店舗ごと）を編集
 window.oBaseMedal=function(){
@@ -1651,12 +1665,12 @@ function salViewHtml(){
   return `<div class="salist">${rows}</div><div style="display:flex;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:0.5px solid var(--border)"><span style="color:var(--text-muted);font-size:12px">合計</span><span style="font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">${total.toLocaleString()}円</span></div>`;
 }
 function renderSalary(){
-  const {y,mo,day}=salCtx;
+  const {y,mo,day}=salCtx; const lead=isLeader();
   if(salView==='history'){
     document.getElementById('mtitle').textContent='給与の履歴';
     const hasDay=salaryHas(y,mo,day);
     document.getElementById('mbody').innerHTML=`<div class="salhist">${salHistoryHtml()}</div>
-      <button class="btn p" style="width:100%;margin-top:12px" onclick="salToEdit()">${mo+1}/${day} の給与を${hasDay?'編集する':'入力する'}</button>`;
+      ${lead?`<button class="btn p" style="width:100%;margin-top:12px" onclick="salToEdit()">${mo+1}/${day} の給与を${hasDay?'編集する':'入力する'}</button>`:'<div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px">給与の入力・編集はリーダーのみ行えます</div>'}`;
     document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button>`;
     const sh=document.querySelector('.salhist'); if(sh) sh.scrollTop=sh.scrollHeight; // 最新（最下部）を表示
     return;
@@ -1665,8 +1679,8 @@ function renderSalary(){
   document.getElementById('mtitle').textContent=`給与支払い — ${mo+1}/${day}`;
   if(salLocked){
     document.getElementById('mbody').innerHTML=`${back}
-      <div class="secbox"><div class="sechd"><span class="st">この日の給与</span><button class="tlink" onclick="salEdit()">編集</button></div>${salViewHtml()}</div>`;
-    document.getElementById('mfoot').innerHTML=`<button class="btn danger" onclick="delSalary()">この日を削除</button><button class="btn" onclick="cM()">閉じる</button>`;
+      <div class="secbox"><div class="sechd"><span class="st">この日の給与</span>${lead?'<button class="tlink" onclick="salEdit()">編集</button>':''}</div>${salViewHtml()}</div>`;
+    document.getElementById('mfoot').innerHTML=`${lead?'<button class="btn danger" onclick="delSalary()">この日を削除</button>':''}<button class="btn" onclick="cM()">閉じる</button>`;
   }else{
     const exist=slGet(y,mo,day)||{};
     const rows=N.map((n,mid)=>{ const uid=MEMBERS[mid]?.uid; const val=(uid&&exist[uid])?exist[uid]:'';
@@ -1680,10 +1694,10 @@ function renderSalary(){
     salCalc();
   }
 }
-window.salToEdit=function(){ salView='edit'; salLocked=salaryHas(salCtx.y,salCtx.mo,salCtx.day); renderSalary(); };
+window.salToEdit=function(){ if(!isLeader())return; salView='edit'; salLocked=salaryHas(salCtx.y,salCtx.mo,salCtx.day); renderSalary(); };
 window.salToHistory=function(){ salView='history'; renderSalary(); };
 window.salGoEdit=function(ds){ const a=ds.split('-').map(Number); salCtx={y:a[0],mo:a[1]-1,day:a[2]}; salView='edit'; salLocked=salaryHas(a[0],a[1]-1,a[2]); renderSalary(); };
-window.salEdit=function(){ salLocked=false; renderSalary(); };
+window.salEdit=function(){ if(!isLeader())return; salLocked=false; renderSalary(); };
 window.salCalc=function(){
   const {y,mo,day}=salCtx;
   let t=0; N.forEach((_,mid)=>{ t+=parseFloat(document.getElementById('sal-'+mid)?.value)||0; });
@@ -1696,6 +1710,7 @@ window.salCalc=function(){
     +row('支払い後の現金残高', `${after.toLocaleString()}円`, after<0?'var(--text-danger)':'#c7c7cc');
 };
 window.svSalary=function(){
+  if(!isLeader()){ alert('給与の入力・編集はリーダーのみ行えます'); return; }
   const {y,mo,day}=salCtx; const ds=dstr(y,mo,day);
   const payments={};
   N.forEach((_,mid)=>{ const uid=MEMBERS[mid]?.uid; const v=parseFloat(document.getElementById('sal-'+mid)?.value)||0; if(uid&&v>0) payments[uid]=v; });
@@ -1704,6 +1719,7 @@ window.svSalary=function(){
   salView='edit'; salLocked=true; renderSalary();
 };
 window.delSalary=function(){
+  if(!isLeader()){ alert('給与の削除はリーダーのみ行えます'); return; }
   const {y,mo,day}=salCtx; const ds=dstr(y,mo,day);
   confirmBox(`${mo+1}/${day} の給与支払いを削除しますか？\n引いていた現金残高はこの分だけ戻ります。`, async ()=>{
     if(typeof salaryCol!=='undefined' && salaryCol){
