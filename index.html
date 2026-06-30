@@ -415,15 +415,14 @@ body.modal-open #wrap{overflow:hidden!important}
 .dayfab.bal{background:rgba(245,197,24,.2);text-shadow:0 0 2px rgba(90,68,0,.95),0 1px 1.5px rgba(0,0,0,.6)}
 .dayfab.bal svg{stroke-width:2.4}
 .dayfab.pay{background:rgba(124,116,255,.22);text-shadow:0 0 2px rgba(40,34,120,.95),0 1px 1.5px rgba(0,0,0,.6)}
-.cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:flex-end;gap:26px;z-index:60;pointer-events:none;animation:cfbIn .34s cubic-bezier(.2,.7,.3,1) both}
-.cfabbar.cfb-out{animation:cfbOut .16s ease both}
+.cfabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;align-items:flex-end;gap:26px;z-index:60;pointer-events:none}
+.cfabbar.cfb-anim{animation:cfbIn .55s cubic-bezier(.25,.8,.3,1) both}
 .cfabbar .cfab{pointer-events:auto}
 .cfab{width:46px;height:46px;font-size:23px}
 .cfab.side{margin-bottom:0}
 .cfab.big{width:70px;height:70px;font-size:35px;margin-bottom:16px}
 .cfab .cfrip{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none;animation:cfripA .42s ease-out forwards;z-index:2}
-@keyframes cfbIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes cfbOut{from{opacity:1;transform:translateX(-50%) translateY(0)}to{opacity:0;transform:translateX(-50%) translateY(10px)}}
+@keyframes cfbIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}60%{opacity:1}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes cfripA{from{transform:scale(0);opacity:.65}to{transform:scale(7);opacity:0}}
 /* 入場：ふわっとフェードしながら少し広がる／退場：フェードして中心へ */
 .dayfab.anim-in{animation:fabFadeTR .5s cubic-bezier(.2,.6,.3,1) both}
@@ -1065,7 +1064,7 @@ function gS(mid){return ap==='month'?mSum(mid,cy,cm):ap==='year'?ySum(mid,sy):aS
 // レンダリング
 // ============================================================
 function dc(){CI.forEach(ch=>{try{ch.destroy()}catch(e){}});CI=[]}
-function ra(){dc();renderTabs();renderViews();fabAnim=false;}
+function ra(){dc();renderTabs();renderViews();syncCfab();fabAnim=false;}
 function dayfabBtn(label, onclick, isView, col){
   // 選択セルの右上に重ねる丸ボタン（指で隠れない位置）
   const eyeIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -1092,12 +1091,8 @@ function renderTabs(){
 }
 window.st=function(i,dir){
   if(dir===undefined) dir=(i>tab)?1:(i<tab?-1:0);
-  const bar=document.querySelector('.cfabbar');
-  const go=()=>{
-    tab=i;selDay=null;ra();
-    if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
-  };
-  if(bar && i!==tab){ bar.classList.add('cfb-out'); setTimeout(go,150); } else go();
+  tab=i;selDay=null;ra();
+  if(dir){ const v=document.getElementById('views'); if(v){ v.classList.remove('anim-l','anim-r'); void v.offsetWidth; v.classList.add(dir>0?'anim-l':'anim-r'); } }
 }
 window.selCal=function(v){calSel=+v;selDay=null;ra()}
 
@@ -1216,8 +1211,7 @@ function rMember(container,mid){
         </div>`;
       }).join('')}
     </div>
-    </div>
-    ${cfabBarHtml()}`;
+    </div>`;
   container.appendChild(div);
 }
 
@@ -1296,8 +1290,7 @@ function rTeam(container){
         </div>`;
       }).join('')}
     </div>
-    </div>
-    ${cfabBarHtml()}`;
+    </div>`;
   container.appendChild(div);
 }
 
@@ -1623,11 +1616,26 @@ window.cfabRipple=function(e,el){
 function cfabBarHtml(){
   const coin='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6V6"/><path d="M5 10v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/><path d="M5 14v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/></svg>';
   const bill='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg>';
-  return `<div class="cfabbar">
+  return `<div class="cfabbar" id="cfabbar">
       <button class="dayfab pay cfab side" onpointerdown="cfabRipple(event,this)" onclick="qSalary()" aria-label="給与">${bill}</button>
       <button class="dayfab cfab big" onpointerdown="cfabRipple(event,this)" onclick="qAdd()" aria-label="記録を追加">＋</button>
       <button class="dayfab bal cfab side" onpointerdown="cfabRipple(event,this)" onclick="qBal()" aria-label="収支管理">${coin}</button>
     </div>`;
+}
+let cfabShown=false;
+function syncCfab(){
+  const host=document.getElementById('fab-host'); if(!host) return;
+  let bar=document.getElementById('cfabbar');
+  const want=(tab===0||tab===1);
+  if(want){
+    if(!bar){ host.innerHTML=cfabBarHtml(); bar=document.getElementById('cfabbar'); }
+    bar.style.display='flex';
+    if(!cfabShown){ bar.classList.remove('cfb-anim'); void bar.offsetWidth; bar.classList.add('cfb-anim'); } // タブに入った時だけ登場アニメ
+    cfabShown=true;
+  }else{
+    if(bar) bar.style.display='none';
+    cfabShown=false;
+  }
 }
 
 // 貯メダルの初期枚数（自分の、店舗ごと）を編集
