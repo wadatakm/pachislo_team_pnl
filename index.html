@@ -116,7 +116,12 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .evrow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:11px}
 .evrow:last-child{border-bottom:none}
 .evhead{font-size:10px;color:var(--text-muted);padding:6px 0 3px;font-weight:500}
-.mevc{background:var(--surface-1);border-radius:var(--radius);padding:8px;margin-bottom:6px}
+.mevc{background:var(--surface-1);border-radius:var(--radius);padding:8px;margin-bottom:6px;position:relative}
+.mevc.mine{background:rgba(0,224,138,.08);border:0.5px solid rgba(0,224,138,.35);border-left:3px solid var(--text-success)}
+.mevc.other{border:0.5px solid var(--border)}
+.mev-view{position:absolute;top:7px;right:8px;font-size:9px;color:var(--text-muted);border:0.5px solid var(--border-strong);border-radius:999px;padding:1px 7px;background:#0b0b0d}
+.mev-seclbl{font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.4px;margin:10px 0 6px;padding-top:8px;border-top:0.5px solid var(--border)}
+.mev-seclbl.mine{color:var(--text-success);border-top:none;margin-top:2px}
 .mevn{font-size:11px;font-weight:500;color:var(--text-primary);margin-bottom:5px}
 .mevg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
 .mevs{text-align:center}
@@ -328,9 +333,23 @@ body.modal-open #wrap{overflow:hidden!important}
 .afpill .afn{background:var(--text-success);color:#00150d;font-size:10px;font-weight:800;border-radius:999px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
 .afpill.clr{color:var(--text-muted);border-style:dashed}
 .afpill.on{background:var(--text-success);border-color:var(--text-success);color:#00150d}
-.wlrange{display:flex;align-items:center;gap:8px;padding:8px 16px 2px;flex-wrap:wrap}
-.wldate-in{background:#000;border:0.5px solid var(--border-strong);color:var(--text-primary);font-size:13px;border-radius:8px;padding:6px 9px;font-family:inherit;color-scheme:dark}
-.wlrange-sep{color:var(--text-muted);font-size:13px}
+.wlpgrp{padding:4px 16px 2px}
+.wlplab{font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.4px;margin-bottom:5px}
+.wlrange{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wlrange-btn{background:#000;border:0.5px solid var(--border-strong);color:var(--text-secondary);font-size:13px;border-radius:10px;padding:8px 14px;cursor:pointer}
+.wlrange-btn.has{border-color:var(--text-success);color:#fff}
+.wlcal{background:#0b0b0d;border:0.5px solid var(--border);border-radius:12px;padding:10px 10px 8px;margin-top:8px}
+.wlc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.wlc-title{font-size:13px;font-weight:700}
+.wlc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.wlc-dow{text-align:center;font-size:10px;color:var(--text-muted);padding:3px 0}
+.wlc-dow.s{color:#ff6b6b}.wlc-dow.sa{color:#6ba7ff}
+.wlc-emp{height:32px}
+.wlc-d{height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:8px;cursor:pointer;color:var(--text-secondary)}
+.wlc-d.tod{border:0.5px solid var(--border-strong)}
+.wlc-d.inr{background:rgba(0,224,138,.13);color:#d7ffe9;border-radius:0}
+.wlc-d.pick{background:var(--text-success);color:#00150d;font-weight:700}
+.wlc-hint{font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px}
 .afpanel{padding:4px 14px 8px}
 .afchips{display:flex;flex-wrap:wrap;gap:6px}
 .afchip{background:#0e0e10;border:0.5px solid var(--border-strong);color:#c7c7cc;font-size:12px;border-radius:8px;padding:6px 11px;cursor:pointer}
@@ -1013,7 +1032,8 @@ function mlAllEvGap(mid){ let t=0; for(const k in ML){ if(k.split('_')[0]!==Stri
 // カレンダー下部の稼働履歴：台記録ベースで稼働一覧と同じ行（wlRow）を使う
 function calMlRows(logs){
   if(!logs.length) return '<div style="padding:18px 0;text-align:center;color:var(--text-muted);font-size:12px">まだ記録がありません</div>';
-  const sorted=logs.slice().sort((a,b)=>(b.day||0)-(a.day||0)||String(b.id||'').localeCompare(String(a.id||'')));
+  const dnum=l=>(l.y||0)*10000+(l.mo||0)*100+(l.day||0);
+  const sorted=logs.slice().sort((a,b)=>dnum(b)-dnum(a)||String(b.id||'').localeCompare(String(a.id||'')));  // 上が新しい・下が古い
   return `<div class="wllist">${sorted.map(wlRow).join('')}</div>`;
 }
 function mlTeamDayReal(y,mo,day){ let t=0; N.forEach((_,mid)=>t+=mlDayReal(mid,y,mo,day)); return t; }
@@ -1094,15 +1114,17 @@ function dayfab3Btn(onclick){
 
 function renderTabs(){
   const labels=['チームカレンダー','個人別カレンダー','貯メダル','稼働一覧','収支分析'];
-  const t=labels.map((n,i)=>`<div class="tab${tab===i?' active':''}" onclick="st(${i})">${n}</div>`).join('');
+  const solo=N.length<=1;   // 1人チームは個人別カレンダーを出さない
+  const t=labels.map((n,i)=>(solo&&i===1)?'':`<div class="tab${tab===i?' active':''}" onclick="st(${i})">${n}</div>`).join('');
   document.getElementById('tabs').innerHTML =
     `<div class="tabscroll" id="tabscroll">${t}</div>`+
     `<div class="tabicons"><button class="iconbtn" onclick="oProfile()" aria-label="プロフィール">${IC_PROFILE}</button><button class="iconbtn" onclick="oSet()" aria-label="設定">${IC_GEAR}</button></div>`;
   // 選択中のタブが見切れないよう、その位置まで横スクロール
   const sc=document.getElementById('tabscroll');
-  if(sc){ const act=sc.children[tab]; if(act&&act.scrollIntoView){ try{ act.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){ act.scrollIntoView(); } } }
+  if(sc){ const act=sc.querySelector('.tab.active')||sc.children[tab]; if(act&&act.scrollIntoView){ try{ act.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){ act.scrollIntoView(); } } }
 }
 window.st=function(i,dir){
+  if(N.length<=1 && i===1) i=(dir!==undefined&&dir<0)?0:2;   // 1人チーム：個人別カレンダーはスキップ
   if(dir===undefined) dir=(i>tab)?1:(i<tab?-1:0);
   const fromCal=(tab===0||tab===1), toCal=(i===0||i===1);
   const leavingCal = fromCal && !toCal && i!==tab;          // カレンダー→他タブ（退場）
@@ -1552,24 +1574,56 @@ window.wlOpenFilter=function(k){ wlFilterOpen=(wlFilterOpen===k)?null:k; ra(); }
 window.wlToggle=function(kind,val){ const set=wlFil[kind]; const v=(kind==='store'||kind==='member')?+val:val; if(set.has(v)) set.delete(v); else set.add(v); ra(); };
 window.wlClear=function(kind){ wlFil[kind]=new Set(); ra(); };
 window.wlClearAll=function(){ wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set()}; wlFilterOpen=null; ra(); };
-window.wlSetPeriod=function(p){ wlPeriod=p; wlFrom=null; wlTo=null; ra(); };   // プリセット選択で任意期間は解除
-window.wlSetFrom=function(v){ wlFrom=v||null; if(wlFrom||wlTo) wlPeriod='all'; ra(); };  // 任意期間でプリセットは解除
-window.wlSetTo=function(v){ wlTo=v||null; if(wlFrom||wlTo) wlPeriod='all'; ra(); };
-window.wlClearRange=function(){ wlFrom=null; wlTo=null; ra(); };
+window.wlSetPeriod=function(p){ wlPeriod=p; wlFrom=null; wlTo=null; wlCalOpen=false; ra(); };   // プリセット選択で日付指定は解除
+window.wlClearRange=function(){ wlFrom=null; wlTo=null; wlCalOpen=false; ra(); };
 window.wlEdit=function(mid,y,mo,day,id){ cy=+y; cm=+mo; selDay=null; oForm(+mid,+day,id); };
 
+let wlCalOpen=false, wlCalY=null, wlCalM=null;   // 期間カレンダーの開閉と表示月
 function wlPeriodBar(){
   const usingRange=!!(wlFrom||wlTo);
   const chips=WL_PERIODS.map(([k,lab])=>`<button class="afpill${(!usingRange&&wlPeriod===k)?' on':''}" onclick="wlSetPeriod('${k}')">${lab}</button>`).join('');
+  const fmt=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:'—';
   return `<div class="analbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>期間</div>
-    <div class="afbar">${chips}</div>
-    <div class="wlrange">
-      <input type="date" class="wldate-in" value="${wlFrom||''}" onchange="wlSetFrom(this.value)" aria-label="開始日">
-      <span class="wlrange-sep">〜</span>
-      <input type="date" class="wldate-in" value="${wlTo||''}" onchange="wlSetTo(this.value)" aria-label="終了日">
-      ${usingRange?`<button class="aflink" onclick="wlClearRange()">期間を解除</button>`:''}
+    <div class="wlpgrp"><div class="wlplab">プリセット</div><div class="afbar" style="padding-top:0">${chips}</div></div>
+    <div class="wlpgrp"><div class="wlplab">日付で指定</div>
+      <div class="wlrange">
+        <button class="wlrange-btn${usingRange?' has':''}" onclick="wlCalToggle()">${usingRange?`${fmt(wlFrom)} 〜 ${fmt(wlTo)}`:'開始 〜 終了 を選ぶ'}</button>
+        ${usingRange?`<button class="aflink" onclick="wlClearRange()">解除</button>`:''}
+      </div>
+      ${wlCalOpen?wlRangeCalHtml():''}
     </div>`;
 }
+// 期間カレンダー（1回目タップ=開始日・2回目=終了日）
+function wlRangeCalHtml(){
+  const t=new Date();
+  if(wlCalY==null){ const base=wlFrom||wlTo; wlCalY=base?+base.slice(0,4):t.getFullYear(); wlCalM=base?(+base.slice(5,7)-1):t.getMonth(); }
+  const y=wlCalY, mo=wlCalM;
+  const dn=dim(y,mo), first=fd(y,mo);
+  const ymd=(d)=>`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const cells=['日','月','火','水','木','金','土'].map((d,i)=>`<div class="wlc-dow${i===0?' s':i===6?' sa':''}">${d}</div>`);
+  for(let b=0;b<first;b++) cells.push('<div class="wlc-emp"></div>');
+  for(let d=1;d<=dn;d++){
+    const ds=ymd(d);
+    const isFrom=wlFrom===ds, isTo=wlTo===ds;
+    const inR=wlFrom&&wlTo&&ds>wlFrom&&ds<wlTo;
+    const isT=t.getFullYear()===y&&t.getMonth()===mo&&t.getDate()===d;
+    cells.push(`<div class="wlc-d${isFrom||isTo?' pick':''}${inR?' inr':''}${isT?' tod':''}" onclick="wlCalPick('${ds}')">${d}</div>`);
+  }
+  const hint=!wlFrom?'開始日をタップ':(!wlTo?'終了日をタップ':'選び直す場合はもう一度タップ');
+  return `<div class="wlcal">
+    <div class="wlc-head"><button class="mnav" onclick="wlCalNav(-1)">‹</button><span class="wlc-title">${y}年${mo+1}月</span><button class="mnav" onclick="wlCalNav(1)">›</button></div>
+    <div class="wlc-grid">${cells.join('')}</div>
+    <div class="wlc-hint">${hint}</div>
+  </div>`;
+}
+window.wlCalToggle=function(){ wlCalOpen=!wlCalOpen; if(wlCalOpen){ wlCalY=null; wlCalM=null; } ra(); };
+window.wlCalNav=function(d){ wlCalM+=d; if(wlCalM<0){wlCalM=11;wlCalY--;} if(wlCalM>11){wlCalM=0;wlCalY++;} ra(); };
+window.wlCalPick=function(ds){
+  if(!wlFrom || (wlFrom&&wlTo)){ wlFrom=ds; wlTo=null; }        // 1回目 or 選び直し=開始日
+  else { if(ds<wlFrom){ wlTo=wlFrom; wlFrom=ds; } else wlTo=ds; wlCalOpen=false; }  // 2回目=終了日（前後は自動入替・選び終えたら閉じる）
+  if(wlFrom||wlTo) wlPeriod='all';   // 日付指定でプリセット解除（排他）
+  ra();
+};
 function wlFilterBar(){
   const cands=anaCands();
   const opts={ machine:cands.machine.map(m=>[m,m]), store:S.map((s,i)=>[i,s.name]), member:N.map((n,i)=>[i,n]), machineNo:cands.machineNo.map(no=>[no, no==='(未入力)'?'台番なし':'#'+no]) };
@@ -2007,7 +2061,8 @@ window.svBalance=function(){
 
 function mlRowHtml(l,clickable,mid,day){
   const v=mlVals(l);
-  return `<div class="mevc"${clickable?` style="cursor:pointer" onclick="cM();oForm(${mid},${day},'${l.id}')"`:''}>
+  return `<div class="mevc ${clickable?'mine':'other'}" style="cursor:pointer" onclick="cM();oForm(${mid},${day},'${l.id}'${clickable?'':',1'})">
+    ${clickable?'':'<span class="mev-view">閲覧</span>'}
     <div class="mevn">${S[l.storeIdx]?.name||'不明'}${l.machine?' / '+l.machine:''}${l.machineNo?`<span style="color:var(--text-muted);font-weight:400"> #${mlEsc(l.machineNo)}</span>`:''}<span class="ebadge ${l.playType==='ev'?'ev':'st'}">${l.playType==='ev'?'期待値':'設定狙い'}</span></div>
     <div style="font-size:10px;color:var(--text-muted);line-height:1.6">${v.hasEnd?`台収支 ${v.daiReal>0?'+':''}${v.daiReal.toLocaleString()}枚${v.hourly!=null?` ・ 時給 <span class="${v.hourly>0?'pos':v.hourly<0?'neg':''}">${fh(v.hourly)}円</span>`:''}${v.evGap!=null?` ・ EV差 <span class="${v.evGap>0?'pos':v.evGap<0?'neg':''}">${v.evGap>0?'+':''}${v.evGap.toLocaleString()}円</span>`:''}`:'終了時 未入力'}</div>
     ${Array.isArray(l.handoffs)&&l.handoffs.length?`<div style="font-size:10px;color:var(--text-muted);line-height:1.6">${l.handoffs.map(h=>`${h.type==='recv'?'受取':'渡し'} ${(h.amount||0).toLocaleString()}枚 ${h.type==='recv'?`(${N[h.partner]||'?'}から)`:`(${N[h.partner]||'?'}へ)`}`).join(' ・ ')}</div>`:''}
@@ -2017,18 +2072,20 @@ function mlRowHtml(l,clickable,mid,day){
 window.oDayTeam=function(day){
   const rows=[];
   N.forEach((_,mid)=>gML(mid,cy,cm).filter(l=>l.day===day).forEach(l=>rows.push({...l,mid})));
-  rows.sort((a,b)=>a.mid-b.mid||String(a.id).localeCompare(String(b.id)));
+  const isOwn=l=>MEMBERS[l.mid]&&MEMBERS[l.mid].uid===myUid;
+  const mine=rows.filter(isOwn).sort((a,b)=>String(b.id).localeCompare(String(a.id)));                       // 新しいものが上
+  const others=rows.filter(l=>!isOwn(l)).sort((a,b)=>String(b.id).localeCompare(String(a.id)));              // 新しいものが上（メンバー混在でも時系列）
+  const nameRow=l=>`<div style="font-size:10px;color:${isOwn(l)?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px;display:flex;align-items:center">${avatarMini(l.mid)}${N[l.mid]}</div>`;
   document.getElementById('mtitle').textContent=`チーム — ${cm+1}/${day}`;
   document.getElementById('mbody').innerHTML=`
     ${rows.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台記録はまだありません</div>':''}
-    ${rows.map(l=>{const own=MEMBERS[l.mid]&&MEMBERS[l.mid].uid===myUid;
-      return `<div style="font-size:10px;color:${own?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px;display:flex;align-items:center">${avatarMini(l.mid)}${N[l.mid]}</div>`+mlRowHtml(l,own,l.mid,day);}).join('')}
-    <div style="font-size:10px;color:var(--text-muted);padding:4px 0">他メンバーの記録は閲覧のみ（編集は本人）</div>`;
+    ${mine.length?`<div class="mev-seclbl mine">自分の記録</div>`+mine.map(l=>mlRowHtml(l,true,l.mid,day)).join(''):''}
+    ${others.length?`<div class="mev-seclbl">他のメンバー（閲覧のみ）</div>`+others.map(l=>nameRow(l)+mlRowHtml(l,false,l.mid,day)).join(''):''}`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button><button class="btn p" onclick="oForm(${myMid()},${day},null)">＋ 自分の記録を追加</button>`;
   oM();
 };
 window.oDayView=function(mid,day){
-  const ls=gML(mid,cy,cm).filter(l=>l.day===day);
+  const ls=gML(mid,cy,cm).filter(l=>l.day===day).sort((a,b)=>String(b.id).localeCompare(String(a.id)));   // 新しいものが上
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day}（閲覧）`;
   document.getElementById('mbody').innerHTML=`
     ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の記録はありません</div>':''}
@@ -2038,7 +2095,7 @@ window.oDayView=function(mid,day){
   oM();
 };
 window.oDayM=function(mid,day){
-  const ls=gML(mid,cy,cm).filter(l=>l.day===day);
+  const ls=gML(mid,cy,cm).filter(l=>l.day===day).sort((a,b)=>String(b.id).localeCompare(String(a.id)));   // 新しいものが上
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day}`;
   document.getElementById('mbody').innerHTML=`
     ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台記録はまだありません</div>':''}
@@ -2055,14 +2112,19 @@ function machineList(){
   return Object.keys(cnt).sort((a,b)=> cnt[b]-cnt[a] || a.localeCompare(b));
 }
 
-let mlStartLock=false, mlEndLock=true, mlMemoLock=false;
+let mlStartLock=false, mlEndLock=true, mlMemoLock=false, mlReadOnly=false;
 let hoData=[]; // 現在のフォームの受け渡しリスト
 function mlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-window.oForm=function(mid,day,editId){
-  const logs=editId?gML(mid,cy,cm):[];
-  const e=(editId?logs.find(l=>l.id===editId):null)||{}; const isEdit=!!(editId&&logs.find(l=>l.id===editId));
-  mlStartLock=isEdit; mlEndLock=true; mlMemoLock=isEdit; // 新規=開始時とメモが編集可・終了時ロック／編集時=全ロック
-  document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録`;
+window.oForm=function(mid,day,editId,ro){
+  mlReadOnly=!!ro;   // 閲覧専用（他人の記録）
+  let e=null;
+  if(editId){
+    e=gML(mid,cy,cm).find(l=>String(l.id)===String(editId))||null;
+    if(!e){ const hit=allMLogs().find(l=>String(l.id)===String(editId)); if(hit){ cy=hit.y; cm=hit.mo; day=hit.day; e=hit; } }  // 月ズレでも全期間から探して合わせる
+  }
+  const isEdit=!!e; e=e||{};
+  mlStartLock=isEdit||mlReadOnly; mlEndLock=true; mlMemoLock=isEdit||mlReadOnly; // 新規=開始時とメモが編集可・終了時ロック／編集時=全ロック
+  document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録${mlReadOnly?'（閲覧）':''}`;
   const sOpts=S.map((s,i)=>`<option value="${i}"${i===(e.storeIdx||0)?' selected':''}>${s.name}</option>`).join('');
   const pt=e.playType||'setting';
   document.getElementById('mbody').innerHTML=`
@@ -2101,10 +2163,10 @@ window.oForm=function(mid,day,editId){
 
     <div class="secbox" id="secHo">
       <div class="sechd"><span class="st">メダル受け渡し</span></div>
-      <div class="hobtns">
+      ${mlReadOnly?'':`<div class="hobtns">
         <button class="hobtn recv" onclick="addHandoff('recv')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>受け取る</button>
         <button class="hobtn give" onclick="addHandoff('give')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M7 14l5-5 5 5"/><path d="M5 4h14"/></svg>渡す</button>
-      </div>
+      </div>`}
       <div id="hoList" class="holist"></div>
     </div>
 
@@ -2119,12 +2181,12 @@ window.oForm=function(mid,day,editId){
     </div>
 
     <div class="secbox" id="secMm">
-      <div class="sechd"><span class="st">メモ</span><button class="tlink" onclick="openMemoEdit()">編集</button></div>
+      <div class="sechd"><span class="st">メモ</span>${mlReadOnly?'':'<button class="tlink" onclick="openMemoEdit()">編集</button>'}</div>
       <div id="viewMm"></div>
       <textarea id="fmm" style="display:none">${e.memo?mlEsc(e.memo):''}</textarea>
     </div>
-    ${isEdit?`<button class="btn danger" style="width:100%" onclick="delE(${mid},'${editId}')">この記録を削除</button>`:''}`;
-  document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">キャンセル</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}')">保存</button>`;
+    ${isEdit&&!mlReadOnly?`<button class="btn danger" style="width:100%" onclick="delE(${mid},'${editId}')">この記録を削除</button>`:''}`;
+  document.getElementById('mfoot').innerHTML=mlReadOnly?`<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`:`<button class="btn" onclick="cM()">キャンセル</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}')">保存</button>`;
   oM();
   const hoList=document.getElementById('hoList');
   hoData = Array.isArray(e.handoffs)?e.handoffs.map(h=>({type:h.type,partner:h.partner,amount:h.amount})):[];
@@ -2198,7 +2260,7 @@ function applyMLLocks(){
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
   const sw=(view,edit,locked)=>{const v=document.getElementById(view),ed=document.getElementById(edit);if(v)v.style.display=locked?'block':'none';if(ed)ed.style.display=locked?'none':'block';};
   sw('viewSt','editSt',mlStartLock); sw('viewEn','editEn',mlEndLock);
-  const hd=(id,sec,locked)=>{const el=document.getElementById(id);if(!el)return; el.innerHTML=locked?`<button class="tlink" onclick="tgSec('${sec}')">編集</button>`:`<button class="tlink mut" onclick="cancelSec('${sec}')">キャンセル</button><button class="tlink" style="margin-left:14px" onclick="tgSec('${sec}')">完了</button>`;};
+  const hd=(id,sec,locked)=>{const el=document.getElementById(id);if(!el)return; el.innerHTML=mlReadOnly?'':(locked?`<button class="tlink" onclick="tgSec('${sec}')">編集</button>`:`<button class="tlink mut" onclick="cancelSec('${sec}')">キャンセル</button><button class="tlink" style="margin-left:14px" onclick="tgSec('${sec}')">完了</button>`);};
   hd('secStHd','start',mlStartLock); hd('secEnHd','end',mlEndLock);
   // メモが長いとき「すべて表示」（大きいシートで表示）
   const mbox=document.getElementById('memoBox'), macts=document.getElementById('memoActs');
@@ -2210,11 +2272,12 @@ window.closeMemo=function(){ document.getElementById('memobg').className='modal-
 window.openMemoView=function(){
   const memo=document.getElementById('fmm')?.value||'';
   document.getElementById('memottl').textContent='メモ';
-  document.getElementById('memohd').innerHTML=`<button class="tlink mut" onclick="closeMemo()">閉じる</button><button class="tlink" style="margin-left:14px" onclick="openMemoEdit()">編集</button>`;
+  document.getElementById('memohd').innerHTML=`<button class="tlink mut" onclick="closeMemo()">閉じる</button>${mlReadOnly?'':'<button class="tlink" style="margin-left:14px" onclick="openMemoEdit()">編集</button>'}`;
   document.getElementById('memobody').innerHTML=`<div class="memo-full">${memo?mlEsc(memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>'}</div>`;
   openMemoSheet();
 };
 window.openMemoEdit=function(){
+  if(mlReadOnly) return;   // 閲覧専用では編集不可
   const memo=document.getElementById('fmm')?.value||'';
   document.getElementById('memottl').textContent='メモを編集';
   document.getElementById('memohd').innerHTML=`<button class="tlink mut" onclick="closeMemo()">キャンセル</button><button class="tlink" style="margin-left:14px" onclick="memoDone()">完了</button>`;
