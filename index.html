@@ -2520,7 +2520,7 @@ window.oForm=function(mid,day,editId,ro){
           <div class="pstep"><input id="fpc" type="number" inputmode="numeric" placeholder="0" value="${e.pushC??(e.invest?e.invest/1000:'')}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fpc',-1)">−</button><button class="pbtn-push" onclick="pushStep('fpc',1)">PUSH</button></div>
           <div class="psub" id="fpcSub"></div>
         </div>
-        <div class="plgrp-lbl sep">貯メダル</div>
+        <div class="plgrp-lbl sep">貯メダル・持ちメダル</div>
         <div class="fr purow"><label class="fl" style="margin:0">1PUSHの枚数</label>
           <select id="fpuSel" class="pusel" onchange="puSelChange(this.value)">
             <option value="46">46枚</option>
@@ -2529,10 +2529,14 @@ window.oForm=function(mid,day,editId,ro){
           </select>
           <input id="fpu" type="number" inputmode="numeric" style="display:none" placeholder="枚数" value="${e.pushUnit!=null?e.pushUnit:((S[e.storeIdx||0]||{}).mp||46)}" oninput="mlCalc()">
         </div>
-        <div class="psub" style="margin:-2px 0 8px">貯メダル用。店により異なる場合は変更（現金は貸出レートで換算）</div>
+        <div class="psub" style="margin:-2px 0 8px">貯メ・持ちメ用。店により異なる場合は変更（現金は貸出レートで換算）</div>
         <div class="fr"><label class="fl">貯メダル投資（PUSH）</label>
           <div class="pstep"><input id="fps" type="number" inputmode="numeric" placeholder="0" value="${e.pushS??''}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fps',-1)">−</button><button class="pbtn-push" onclick="pushStep('fps',1)">PUSH</button></div>
           <div class="psub" id="fpsSub"></div>
+        </div>
+        <div class="fr"><label class="fl">持ちメダル投資（PUSH）— 記録用（収支計算には使いません）</label>
+          <div class="pstep"><input id="fpk" type="number" inputmode="numeric" placeholder="0" value="${e.pushK??''}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fpk',-1)">−</button><button class="pbtn-push" onclick="pushStep('fpk',1)">PUSH</button></div>
+          <div class="psub" id="fpkSub"></div>
         </div>
       </div>
     </div>
@@ -2605,7 +2609,7 @@ window.oForm=function(mid,day,editId,ro){
 function curForm(){
   const g=id=>document.getElementById(id); let si=parseInt(g('fst')?.value); if(isNaN(si)||si<0||si>=S.length) si=0;
   const jug=!!document.getElementById('jgSw')?.classList.contains('on');
-  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', startMedal:g('fsm')?.value, pushC:g('fpc')?.value, pushS:g('fps')?.value, pushUnit:g('fpu')?.value, handoffs:curHandoffs(), endMedal:g('fem')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
+  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', startMedal:g('fsm')?.value, pushC:g('fpc')?.value, pushS:g('fps')?.value, pushK:g('fpk')?.value, pushUnit:g('fpu')?.value, handoffs:curHandoffs(), endMedal:g('fem')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
     jug, jSpinS:g('jss')?.value, jBigS:g('jbs')?.value, jRegS:g('jrs')?.value,
     jSpinE:g('jse')?.value, jBigE:g('jbe')?.value, jRegE:g('jre')?.value,
     jGrape:g('jgr')?.value, jCherry:g('jch')?.value,
@@ -2694,7 +2698,7 @@ function applyMLLocks(){
   const _mp=(S[f.storeIdx]||{}).mp||46;
   const _pu=parseFloat(f.pushUnit)||_mp;
   const pushV=(v,extra)=>{ const n=parseFloat(v); if(v===''||v==null||isNaN(n)) return '<span class="vmut">未入力</span>'; return `${n}PUSH <span class="vmut">（${extra(n)}）</span>`; };
-  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メダル用）</div>`;
+  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+vrow('持ちメダル投資（記録用）',pushV(f.pushK,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メダル用）</div>`;
   document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h':'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
   const memoTxt=f.memo?mlEsc(f.memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>';
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
@@ -2749,13 +2753,13 @@ window.memoDone=function(){
   closeMemo(); applyMLLocks();
 };
 let mlSnap={};
-function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo','startMedal']:sec==='play'?['pushC','pushS','pushUnit','handoffs']:sec==='end'?['endMedal','hours']:['memo']; }
+function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo','startMedal']:sec==='play'?['pushC','pushS','pushK','pushUnit','handoffs']:sec==='end'?['endMedal','hours']:['memo']; }
 function snapSec(sec){ const f=curForm(); const o={}; secFields(sec).forEach(k=>o[k]=f[k]); mlSnap[sec]=o; }
 function restoreSec(sec){
   const o=mlSnap[sec]; if(!o) return;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v==null?'':v);};
   if(sec==='start'){ if(o.playType) sPTm(o.playType); set('fev',o.ev); const fst=document.getElementById('fst'); if(fst&&o.storeIdx!=null) fst.value=String(o.storeIdx); set('fmc',o.machine); set('fno',o.machineNo); set('fsm',o.startMedal); }
-  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpu',o.pushUnit); hoData=(o.handoffs||[]).map(h=>({...h})); renderHoList(); puSync(); }
+  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpk',o.pushK); set('fpu',o.pushUnit); hoData=(o.handoffs||[]).map(h=>({...h})); renderHoList(); puSync(); }
   else if(sec==='end'){ set('fem',o.endMedal); set('fhr',o.hours); }
   else { set('fmm',o.memo); }
 }
@@ -2775,6 +2779,7 @@ window.mlCalc=function(){
     const el=(id,t)=>{const e2=document.getElementById(id); if(e2)e2.textContent=t;};
     el('fpcSub', pn(f.pushC)>0?`= ${(pn(f.pushC)*1000).toLocaleString()}円 ・ ${Math.round(pn(f.pushC)*_mp).toLocaleString()}枚`:'');
     el('fpsSub', pn(f.pushS)>0?`= ${Math.round(pn(f.pushS)*_pu).toLocaleString()}枚`:'');
+    el('fpkSub', pn(f.pushK)>0?`= ${Math.round(pn(f.pushK)*_pu).toLocaleString()}枚`:'');
   } const v=mlVals(f);
   const dv=document.getElementById('cDaiY'), tri=document.getElementById('cDaiT'), pill=document.getElementById('cDai');
   const sign=v.daiYen===null?0:(v.daiYen>0?1:v.daiYen<0?-1:0);
@@ -2852,7 +2857,7 @@ window.svML=function(mid,day,editId,mode){
     day, playType:isEv?'ev':'setting', ev:gv('fev')||0, storeIdx, machine,
     machineNo:document.getElementById('fno')?.value.trim()||'',
     playing:(mode==='play'),                                       // 遊戯中ボタンで保存＝確定するまで遊戯中扱い
-    pushC:gv('fpc')||0, pushS:gv('fps')||0,
+    pushC:gv('fpc')||0, pushS:gv('fps')||0, pushK:gv('fpk')||0,   // 持ちメダル投資は記録用（収支計算には不使用）
     pushUnit:gv('fpu')||((S[storeIdx]||{}).mp||46),                // 貯メダルの1PUSH枚数（店により異なる）
     startMedal:gv('fsm')||0,                                      // 開始時持ちメダル（枚）
     handoffs:curHandoffs(),                                       // 受け渡し（相手＋枚数の配列）
