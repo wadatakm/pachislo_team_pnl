@@ -394,7 +394,7 @@ body.modal-open #wrap{overflow:hidden!important}
 .mchip .yy{color:var(--text-muted);font-size:10px;margin-left:3px}
 .medlist{display:flex;flex-direction:column;gap:9px}
 .medrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.medst{font-size:13px;color:#c7c7cc}
+.medst{font-size:13px;color:#c7c7cc;word-break:break-word;line-height:1.4}
 .medval{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#e9e9ec}
 .medval b{font-weight:700}
 .medval .yy{color:var(--text-muted);font-size:11px;font-weight:400;margin-left:4px}
@@ -808,8 +808,8 @@ function mlVals(l){
   const hs=Array.isArray(l.handoffs)?l.handoffs:[];
   const given=hs.length?hs.filter(h=>h.type==='give').reduce((a,h)=>a+mlNum(h.amount),0):mlNum(l.given);
   const received=hs.length?hs.filter(h=>h.type==='recv').reduce((a,h)=>a+mlNum(h.amount),0):mlNum(l.received);
-  // 実収支（枚）＝（終了時持ちメダル＋渡した）−（開始時持ちメダル−受け取った）− 現金投資（枚）− 貯メダル投資（枚）
-  const daiReal=hasEnd?Math.round((mlNum(l.endMedal)+given)-(mlNum(l.startMedal)-received)-investMedal):null;
+  // 実収支（枚）＝（終了時持ちメダル＋渡した）−（開始時持ちメダル＋受け取った）− 現金投資（枚）− 貯メダル投資（枚）
+  const daiReal=hasEnd?Math.round((mlNum(l.endMedal)+given)-(mlNum(l.startMedal)+received)-investMedal):null;
   const daiYen=hasEnd?Math.round(daiReal*yen*100)/100:null;        // 円（内部は小数2桁で保持・表示は整数丸め）
   const hrs=mlNum(l.hours);
   const hourly=(hasEnd&&hrs>0)?Math.round(daiYen/hrs):null;        // 時給＝実収支(円)÷稼働時間
@@ -3123,6 +3123,8 @@ window.onAvatarFile=async function(input){
   }catch(e){ alert('画像の設定に失敗しました：'+e.message); }
   input.value='';
 };
+let profMedExpand=false, profMedAnim=false;   // プロフィールの貯メダル折りたたみ
+window.profMedToggle=function(){ profMedExpand=!profMedExpand; profMedAnim=profMedExpand; oProfile(); };
 window.oProfile=function(){
   const u=auth.currentUser||{};
   const mm=(myUid!=null)?uidToMid[myUid]:null;
@@ -3153,7 +3155,13 @@ window.oProfile=function(){
     </div>
     <div class="pcard-t" style="padding:0 2px">貯メダル（現在）</div>
     <div class="pcard">
-      ${mm!=null?`<div class="medlist">${selStores(mm).map((si)=>`<div class="medrow"><span class="medst">${mlEsc(S[si].name)}</span><span class="medval"><b>${getCurrentMedal(mm,si).toLocaleString()}</b>枚<span class="yy">≈${mY(getCurrentMedal(mm,si),si).toLocaleString()}円</span></span></div>`).join('')||'<div style="font-size:12px;color:var(--text-muted)">対象の店がありません</div>'}</div>`:''}
+      ${mm!=null?`<div class="medlist">${(()=>{
+        const sel=selStores(mm);
+        const shown=profMedExpand?sel:sel.slice(0,SET_SHOW_MAX);
+        const rows=shown.map((si,idx)=>`<div class="medrow${(profMedAnim&&idx>=SET_SHOW_MAX)?' mrow-in':''}"${(profMedAnim&&idx>=SET_SHOW_MAX)?` style="animation-delay:${((idx-SET_SHOW_MAX)*0.045).toFixed(3)}s"`:''}><span class="medst">${mlEsc(S[si].name)}</span><span class="medval"><b>${getCurrentMedal(mm,si).toLocaleString()}</b>枚<span class="yy">≈${mY(getCurrentMedal(mm,si),si).toLocaleString()}円</span></span></div>`).join('');
+        const more=sel.length>SET_SHOW_MAX?`<button class="medal-more" onclick="profMedToggle()">${profMedExpand?'たたむ ▴':`他${sel.length-SET_SHOW_MAX}店舗を表示 ▾`}</button>`:'';
+        return (rows+more)||'<div style="font-size:12px;color:var(--text-muted)">対象の店がありません</div>';
+      })()}</div>`:''}
       <div class="prow2" style="margin-top:11px;border-top:0.5px solid var(--border);padding-top:10px"><div><div style="font-size:12px">初期枚数</div><div style="font-size:10px;color:var(--text-muted)">使い始め時点の枚数（店舗ごと）</div></div><button class="tlink" onclick="oBaseMedal()">編集</button></div>
     </div>
     <div class="pcard-t" style="padding:0 2px">チーム</div>
@@ -3167,6 +3175,7 @@ window.oProfile=function(){
     </div>
     <button class="imp-btn" onclick="logout()">ログアウト</button>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`;
+  profMedAnim=false;   // 展開アニメは一度だけ
   oM();
 };
 window.editProfName=function(){ profEdit=true; oProfile(); };
