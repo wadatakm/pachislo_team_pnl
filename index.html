@@ -189,6 +189,21 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .pbtn-minus{width:42px;height:46px;flex:none;background:none;border:0.5px solid var(--border);color:var(--text-muted);font-size:17px;border-radius:12px;cursor:pointer}
 .pbtn-minus:active{background:#141416}
 .psub{font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px}
+.hobtns{display:flex;gap:8px;margin:2px 0 4px}
+.hobtn{flex:1;background:#000;border:0.5px solid var(--border-strong);color:var(--text-secondary);font-size:13px;font-weight:600;border-radius:10px;padding:10px 0;cursor:pointer}
+.hobtn.recv{color:#7ea6ff;border-color:rgba(126,166,255,.4)}
+.hobtn.give{color:var(--text-success);border-color:rgba(0,224,138,.4)}
+.horow{display:flex;align-items:center;gap:8px;background:var(--surface-1);border:0.5px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:6px;cursor:pointer}
+.horow.ro{cursor:default}
+.holbl{flex:1;font-size:13px;min-width:0;color:var(--text-secondary)}
+.hoamt2{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+.hotag{font-size:10px;font-weight:700;border-radius:6px;padding:2px 7px;margin-right:4px}
+.hotag.recv{color:#7ea6ff;background:rgba(126,166,255,.14)}
+.hotag.give{color:var(--text-success);background:rgba(0,224,138,.12)}
+.hochips{display:flex;gap:8px;flex-wrap:wrap}
+.hochip{display:inline-flex;align-items:center;justify-content:center;gap:7px;line-height:1;background:#000;border:0.5px solid var(--border-strong);color:var(--text-muted);font-size:14px;border-radius:999px;padding:8px 16px 8px 10px;cursor:pointer}
+.hochip.on{border-color:var(--text-success);color:var(--text-success);background:rgba(0,224,138,.08)}
+.hochips.shake{animation:shake .4s}
 .plgrp-lbl{font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;margin:2px 0 7px}
 .plgrp-lbl.sep{border-top:0.5px solid var(--border);padding-top:11px;margin-top:12px}
 .fr.purow{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -222,6 +237,8 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 #secPl{border-left-color:#ffb020}
 #secEn{border-left-color:var(--text-success)}
 #secMm{border-left-color:#6b6b72}
+#secHo{border-left:none}
+#secHo .sechd .st{color:#7ea6ff}
 .secbox.balacc{border-left-color:#ff7a00!important}
 .secbox.balacc .sechd .st{color:#ff7a00}
 #secSt .st{color:#7ea5f0}
@@ -779,18 +796,25 @@ const mlNum=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
 // 台ログ1件の自動計算（終了時が未入力ならpayout/sa/realはnull）
 function mlVals(l){
   const s=S[l.storeIdx]||S[0]||{mp:46,rate:5.16};
-  const mp=s.mp||46, rate=s.rate||5.16, yen=100/rate;
-  const hasEnd=(l.playing!==true) && (l.gainMedal!=null && l.gainMedal!=='' && !isNaN(parseFloat(l.gainMedal)));   // 確定＝「保存」で保存済みかつ獲得枚数あり。遊戯中保存(playing)は常に遊戯中
-  // 実収支（枚）＝ 獲得枚数 −（現金＋貯メ＋持ちメ のPUSH合計 × 1PUSH枚数）
-  const pu=mlNum(l.pushUnit)||mp;   // 貯メ・持ちメの1PUSH枚数（店により異なる。デフォ=貸出レート）
-  const cashMedal=mlNum(l.pushC)*mp;   // 現金は貸出レートで換算
-  const investMedal=cashMedal+(mlNum(l.pushS)+mlNum(l.pushK))*pu;
-  const daiReal=hasEnd?Math.round(mlNum(l.gainMedal)-investMedal):null;
-  const daiYen=hasEnd?Math.round(daiReal*yen):null;
+  const mp=s.mp||46, rate=s.rate||5.16;
+  const yen=Math.round((100/rate)*1000)/1000;        // メダル→円 係数（小数3桁固定。例 100/5.16=19.380）
+  const yenLend=Math.round((1000/mp)*1000)/1000;     // 貸出1枚あたりの円（小数3桁固定。例 1000/46=21.739）
+  const hasEnd=(l.playing!==true) && (l.endMedal!=null && l.endMedal!=='' && !isNaN(parseFloat(l.endMedal)));   // 確定＝「保存」済みかつ終了時持ちメダルあり
+  const pu=mlNum(l.pushUnit)||mp;                    // 貯メダルの1PUSH枚数（店により異なる。デフォ=貸出レート）
+  const cashMedal=mlNum(l.pushC)*mp;                 // 現金投資（枚）＝PUSH×貸出レート
+  const storedMedal=mlNum(l.pushS)*pu;               // 貯メダル投資（枚）＝PUSH×1PUSH枚数
+  const investMedal=cashMedal+storedMedal;
+  // 受け渡し（handoffs配列から集計。旧形式given/receivedも許容）
+  const hs=Array.isArray(l.handoffs)?l.handoffs:[];
+  const given=hs.length?hs.filter(h=>h.type==='give').reduce((a,h)=>a+mlNum(h.amount),0):mlNum(l.given);
+  const received=hs.length?hs.filter(h=>h.type==='recv').reduce((a,h)=>a+mlNum(h.amount),0):mlNum(l.received);
+  // 実収支（枚）＝（終了時持ちメダル＋渡した）−（開始時持ちメダル−受け取った）− 現金投資（枚）− 貯メダル投資（枚）
+  const daiReal=hasEnd?Math.round((mlNum(l.endMedal)+given)-(mlNum(l.startMedal)-received)-investMedal):null;
+  const daiYen=hasEnd?Math.round(daiReal*yen*100)/100:null;        // 円（内部は小数2桁で保持・表示は整数丸め）
   const hrs=mlNum(l.hours);
   const hourly=(hasEnd&&hrs>0)?Math.round(daiYen/hrs):null;        // 時給＝実収支(円)÷稼働時間
   const evGap=(hasEnd&&l.playType==='ev'&&mlNum(l.ev)>0)?Math.round(daiYen-mlNum(l.ev)):null; // EV差＝実収支(円)−期待値（期待値稼働のみ）
-  return {mp,rate,yen,cashMedal,investMedal,daiReal,daiYen,hrs,hourly,evGap,hasEnd};
+  return {mp,rate,yen,yenLend,cashMedal,storedMedal,investMedal,given,received,daiReal,daiYen,hrs,hourly,evGap,hasEnd};
 }
 
 // 旧localStorage(pv9_)データをFirestoreへ一度だけ取り込むユーティリティ
@@ -1004,7 +1028,7 @@ onAuthStateChanged(auth, async user=>{
 // ============================================================
 // ユーティリティ
 // ============================================================
-function f(v){if(v===0)return'±0';return(v>0?'+':'')+v.toLocaleString()}
+function f(v){v=Math.round(v);if(v===0)return'±0';return(v>0?'+':'')+v.toLocaleString()}   // 表示は整数（内部は小数保持）
 function fh(v){return(v>=0?'+':'')+Math.round(v).toLocaleString()}
 function c(v){return v>0?'pos':v<0?'neg':'zero'}
 function mY(med,si){const s=S[si];if(!s||!med)return 0;return Math.round(med*(100/s.rate))}
@@ -2442,13 +2466,14 @@ let mlStartLock=false, mlPlayLock=true, mlEndLock=true, mlMemoLock=false, mlRead
 function mlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 window.oForm=function(mid,day,editId,ro){
   mlReadOnly=!!ro;   // 閲覧専用（他人の記録）
+  hoMid=mid; hoData=(editId&&Array.isArray((gML(mid,cy,cm).find(x=>x.id===editId)||{}).handoffs))?gML(mid,cy,cm).find(x=>x.id===editId).handoffs.map(h=>({...h})):[];   // 受け渡しの編集用コピー
   let e=null;
   if(editId){
     e=gML(mid,cy,cm).find(l=>String(l.id)===String(editId))||null;
     if(!e){ const hit=allMLogs().find(l=>String(l.id)===String(editId)); if(hit){ cy=hit.y; cm=hit.mo; day=hit.day; e=hit; } }  // 月ズレでも全期間から探して合わせる
   }
   const isEdit=!!e; e=e||{};
-  const playing=isEdit && (e.playing===true || e.gainMedal==null||e.gainMedal==='');   // 遊戯中保存 or 獲得枚数未入力＝遊戯中
+  const playing=isEdit && (e.playing===true || e.endMedal==null||e.endMedal==='');   // 遊戯中保存 or 終了時持ちメダル未入力＝遊戯中
   mlStartLock=isEdit||mlReadOnly; mlPlayLock=!(playing&&!mlReadOnly); mlEndLock=true; mlMemoLock=isEdit||mlReadOnly; // 遊戯中の記録は遊戯中フェーズをデフォ展開
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録${mlReadOnly?'（閲覧）':''}`;
   const sOpts=S.map((s,i)=>`<option value="${i}"${i===(e.storeIdx||0)?' selected':''}>${s.name}</option>`).join('');
@@ -2475,6 +2500,7 @@ window.oForm=function(mid,day,editId,ro){
           <div id="fmcErr" class="ferr">機種名を入力してください</div>
         </div>
         <div class="fr"><label class="fl">台番 — 任意</label><input id="fno" type="text" inputmode="numeric" placeholder="例 123" value="${e.machineNo?mlEsc(e.machineNo):''}"></div>
+        <div class="fr"><label class="fl">開始時持ちメダル（枚）</label><input id="fsm" type="number" inputmode="numeric" placeholder="0" value="${e.startMedal??''}" oninput="mlCalc()"></div>
         <div id="jgStart" style="${e.jug?'':'display:none'}">
           <div class="jgrid3">
             <div class="fr"><label class="fl">前任 総回転</label><input id="jss" type="number" inputmode="numeric" placeholder="0" value="${e.jSpinS??''}" oninput="mlCalc()"></div>
@@ -2494,7 +2520,7 @@ window.oForm=function(mid,day,editId,ro){
           <div class="pstep"><input id="fpc" type="number" inputmode="numeric" placeholder="0" value="${e.pushC??(e.invest?e.invest/1000:'')}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fpc',-1)">−</button><button class="pbtn-push" onclick="pushStep('fpc',1)">PUSH</button></div>
           <div class="psub" id="fpcSub"></div>
         </div>
-        <div class="plgrp-lbl sep">貯メダル・持ちメダル</div>
+        <div class="plgrp-lbl sep">貯メダル</div>
         <div class="fr purow"><label class="fl" style="margin:0">1PUSHの枚数</label>
           <select id="fpuSel" class="pusel" onchange="puSelChange(this.value)">
             <option value="46">46枚</option>
@@ -2503,23 +2529,28 @@ window.oForm=function(mid,day,editId,ro){
           </select>
           <input id="fpu" type="number" inputmode="numeric" style="display:none" placeholder="枚数" value="${e.pushUnit!=null?e.pushUnit:((S[e.storeIdx||0]||{}).mp||46)}" oninput="mlCalc()">
         </div>
-        <div class="psub" style="margin:-2px 0 8px">店により異なる場合は変更（現金は貸出レートで換算）</div>
+        <div class="psub" style="margin:-2px 0 8px">貯メダル用。店により異なる場合は変更（現金は貸出レートで換算）</div>
         <div class="fr"><label class="fl">貯メダル投資（PUSH）</label>
           <div class="pstep"><input id="fps" type="number" inputmode="numeric" placeholder="0" value="${e.pushS??''}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fps',-1)">−</button><button class="pbtn-push" onclick="pushStep('fps',1)">PUSH</button></div>
           <div class="psub" id="fpsSub"></div>
         </div>
-        <div class="fr"><label class="fl">持ちメダル投資（PUSH）</label>
-          <div class="pstep"><input id="fpk" type="number" inputmode="numeric" placeholder="0" value="${e.pushK??''}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fpk',-1)">−</button><button class="pbtn-push" onclick="pushStep('fpk',1)">PUSH</button></div>
-          <div class="psub" id="fpkSub"></div>
-        </div>
       </div>
+    </div>
+
+    <div class="secbox" id="secHo">
+      <div class="sechd"><span class="st">メダル受け渡し</span></div>
+      <div id="hoList"></div>
+      ${mlReadOnly?'':`<div class="hobtns">
+        <button class="hobtn recv" type="button" onclick="addHandoff('recv')">＋ 受け取る</button>
+        <button class="hobtn give" type="button" onclick="addHandoff('give')">＋ 渡す</button>
+      </div>`}
     </div>
 
     <div class="secbox" id="secEn">
       <div class="sechd"><span class="st">終了時</span><span id="secEnHd"></span></div>
       <div class="secview" id="viewEn"></div>
       <div class="secedit" id="editEn">
-        <div class="fr"><label class="fl">獲得枚数（枚）— 最終カード流し − カード残</label><input id="fga" type="number" inputmode="numeric" placeholder="例 3500" value="${e.gainMedal!=null?e.gainMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('fgaErr');if(_e)_e.style.display='none';mlCalc()"><div id="fgaErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には獲得枚数の入力が必要です（途中なら「遊戯中」で保存）</div></div>
+        <div class="fr"><label class="fl">終了時持ちメダル（枚）</label><input id="fem" type="number" inputmode="numeric" placeholder="例 3500" value="${e.endMedal!=null?e.endMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('femErr');if(_e)_e.style.display='none';mlCalc()"><div id="femErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には終了時持ちメダルの入力が必要です（途中なら「遊戯中」で保存）</div></div>
         <div class="fr"><label class="fl">稼働時間（h）</label><input id="fhr" type="number" inputmode="decimal" step="0.5" placeholder="例 3.5" value="${e.hours||''}" oninput="mlCalc()"></div>
         <div id="jgEnd" style="${e.jug?'':'display:none'}">
           <div class="jglbl">ジャグラー — 終了時</div>
@@ -2569,18 +2600,68 @@ window.oForm=function(mid,day,editId,ro){
   document.getElementById('mfoot').innerHTML=mlReadOnly?`<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`:`<button class="btn" onclick="cM()">キャンセル</button><button class="btn play" onclick="svML(${mid},${day},'${editId||''}','play')">遊戯中</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}','done')">保存</button>`;
   oM();
 
-  applyMLLocks(); puSync(); snapSec('start'); snapSec('end'); mlCalc();
+  applyMLLocks(); puSync(); renderHoList(); snapSec('start'); snapSec('end'); mlCalc();
 };
 function curForm(){
   const g=id=>document.getElementById(id); let si=parseInt(g('fst')?.value); if(isNaN(si)||si<0||si>=S.length) si=0;
   const jug=!!document.getElementById('jgSw')?.classList.contains('on');
-  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', pushC:g('fpc')?.value, pushS:g('fps')?.value, pushK:g('fpk')?.value, pushUnit:g('fpu')?.value, gainMedal:g('fga')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
+  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', startMedal:g('fsm')?.value, pushC:g('fpc')?.value, pushS:g('fps')?.value, pushUnit:g('fpu')?.value, handoffs:curHandoffs(), endMedal:g('fem')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
     jug, jSpinS:g('jss')?.value, jBigS:g('jbs')?.value, jRegS:g('jrs')?.value,
     jSpinE:g('jse')?.value, jBigE:g('jbe')?.value, jRegE:g('jre')?.value,
     jGrape:g('jgr')?.value, jCherry:g('jch')?.value,
     jRegSolo:g('jrsolo')?.value, jRegChe:g('jrche')?.value, jRegUnk:g('jrunk')?.value,
     jBigSolo:g('jbsolo')?.value, jBigChe:g('jbche')?.value, jBigUnk:g('jbunk')?.value};
 }
+// ===== メダル受け渡し（記録に複数件ぶら下がる。相手＋枚数） =====
+let hoMid=0, hoData=[], hoEditIdx=null;
+function renderHoList(){
+  const l=document.getElementById('hoList'); if(!l) return;
+  l.innerHTML=hoData.map((h,i)=>{
+    const p=N[h.partner]??'—';
+    const lbl=h.type==='recv'?`<span class="hotag recv">受け取り</span> ${mlEsc(p)} から`:`<span class="hotag give">渡した</span> ${mlEsc(p)} へ`;
+    return `<div class="horow${mlReadOnly?' ro':''}"${mlReadOnly?'':` onclick="editHandoff(${i})"`}>
+      <div class="holbl">${lbl}</div>
+      <div class="hoamt2">${(h.amount||0).toLocaleString()}枚</div>
+      ${mlReadOnly?'':`<button class="linkbtn" style="flex:none" onclick="event.stopPropagation();editHandoff(${i})">編集</button>`}
+    </div>`;
+  }).join('') || `<div class="psub" style="margin:0 0 6px">まだ登録がありません</div>`;
+}
+window.addHandoff=function(type){ if(mlReadOnly) return; openHandoffSheet(type,null); };
+window.editHandoff=function(i){ if(mlReadOnly) return; openHandoffSheet(hoData[i].type,i); };
+window.delHandoffRow=function(i){
+  if(mlReadOnly) return;
+  confirmBox('この受け渡しを削除しますか？', ()=>{ hoData.splice(i,1); closeHandoffSheet(); renderHoList(); mlCalc(); });
+};
+function openHandoffSheet(type,idx){
+  hoEditIdx=idx;
+  const cur=idx!=null?hoData[idx]:null;
+  const others=N.map((n,i)=>({n,i})).filter(o=>o.i!==hoMid);
+  const chips=others.map(o=>`<button class="hochip${cur&&cur.partner===o.i?' on':''}" data-p="${o.i}" onclick="[...this.parentElement.children].forEach(c=>c.classList.remove('on'));this.classList.add('on')">${avatarMini(o.i)}<span>${mlEsc(o.n)}</span></button>`).join('');
+  const bg=document.createElement('div');
+  bg.id='hoBg'; bg.className='modal-bg open';
+  bg.style.cssText='z-index:300;align-items:center;padding:0 24px;display:flex';
+  bg.innerHTML=`<div style="width:100%;max-width:340px;background:#1c1c1e;border:0.5px solid var(--border-strong);border-radius:16px;padding:18px;animation:memoFade .16s ease-out">
+    <div style="font-size:15px;font-weight:700;color:#e4e4e7;margin-bottom:4px">${type==='recv'?'メダルを受け取る':'メダルを渡す'}</div>
+    <div class="psub" style="margin:0 0 8px">${type==='recv'?'誰から受け取りましたか':'誰に渡しましたか'}</div>
+    <div class="hochips" id="hoChips">${chips}</div>
+    <div class="fr" style="margin-top:12px"><label class="fl">枚数</label><input id="hoAmt" type="number" inputmode="numeric" placeholder="例 500" value="${cur?cur.amount:''}"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">${idx!=null?`<button class="btn" style="flex:1;color:var(--text-danger)" onclick="delHandoffRow(${idx})">削除</button>`:''}<button class="btn" style="flex:1" onclick="closeHandoffSheet()">キャンセル</button><button class="btn p" style="flex:1" onclick="commitHandoff('${type}')">${idx!=null?'更新':'追加'}</button></div>
+  </div>`;
+  document.body.appendChild(bg);
+  setTimeout(()=>{ try{document.getElementById('hoAmt').focus();}catch(_){}} ,60);
+}
+window.closeHandoffSheet=function(){ const b=document.getElementById('hoBg'); if(b)b.remove(); hoEditIdx=null; };
+window.commitHandoff=function(type){
+  if(mlReadOnly) return;
+  const sel=document.querySelector('#hoChips .hochip.on');
+  const amt=parseFloat(document.getElementById('hoAmt')?.value)||0;
+  if(!sel){ const c=document.getElementById('hoChips'); if(c){c.classList.add('shake'); setTimeout(()=>c.classList.remove('shake'),500);} return; }
+  if(amt<=0){ const a=document.getElementById('hoAmt'); if(a){a.classList.add('invalid'); setTimeout(()=>a.classList.remove('invalid'),900);} return; }
+  const h={type, partner:parseInt(sel.dataset.p), amount:amt};
+  if(hoEditIdx!=null) hoData[hoEditIdx]=h; else hoData.push(h);
+  closeHandoffSheet(); renderHoList(); mlCalc();
+};
+function curHandoffs(){ return hoData.filter(h=>h.amount>0&&h.partner!=null&&!isNaN(h.partner)).map(h=>({type:h.type,partner:h.partner,amount:h.amount})); }
 window.puSelChange=function(v){
   const el=document.getElementById('fpu'); if(!el) return;
   if(v==='custom'){ el.style.display=''; try{el.focus();el.select&&el.select();}catch(_){} }
@@ -2609,12 +2690,12 @@ function vnum(v,unit){ if(v===''||v==null||isNaN(parseFloat(v))) return '<span c
 function applyMLLocks(){
   const f=curForm();
   // 開始時
-  document.getElementById('viewSt').innerHTML=vrow('稼働タイプ',f.playType==='ev'?'<span class="ebadge ev" style="font-size:10px;padding:2px 8px">期待値稼働</span>':'<span class="ebadge st" style="font-size:10px;padding:2px 8px">設定狙い</span>')+(f.playType==='ev'?vrow('期待値',f.ev?parseFloat(f.ev).toLocaleString()+'円':'<span class="vmut">未入力</span>'):'')+vrow('店舗',S[f.storeIdx]?.name||'—')+vrow('機種名',f.machine?mlEsc(f.machine):'<span class="vmut">未入力</span>')+vrow('台番',f.machineNo?mlEsc(f.machineNo):'<span class="vmut">未入力</span>')+(f.jug?vrow('ジャグラーモード','<span class="ebadge st" style="font-size:10px;padding:2px 8px">ON</span>')+vrow('前任 回転/BIG/REG',`${vnum(f.jSpinS)} / ${vnum(f.jBigS)} / ${vnum(f.jRegS)}`):'');
+  document.getElementById('viewSt').innerHTML=vrow('稼働タイプ',f.playType==='ev'?'<span class="ebadge ev" style="font-size:10px;padding:2px 8px">期待値稼働</span>':'<span class="ebadge st" style="font-size:10px;padding:2px 8px">設定狙い</span>')+(f.playType==='ev'?vrow('期待値',f.ev?parseFloat(f.ev).toLocaleString()+'円':'<span class="vmut">未入力</span>'):'')+vrow('店舗',S[f.storeIdx]?.name||'—')+vrow('機種名',f.machine?mlEsc(f.machine):'<span class="vmut">未入力</span>')+vrow('台番',f.machineNo?mlEsc(f.machineNo):'<span class="vmut">未入力</span>')+vrow('開始時持ちメダル',vnum(f.startMedal,'枚'))+(f.jug?vrow('ジャグラーモード','<span class="ebadge st" style="font-size:10px;padding:2px 8px">ON</span>')+vrow('前任 回転/BIG/REG',`${vnum(f.jSpinS)} / ${vnum(f.jBigS)} / ${vnum(f.jRegS)}`):'');
   const _mp=(S[f.storeIdx]||{}).mp||46;
   const _pu=parseFloat(f.pushUnit)||_mp;
   const pushV=(v,extra)=>{ const n=parseFloat(v); if(v===''||v==null||isNaN(n)) return '<span class="vmut">未入力</span>'; return `${n}PUSH <span class="vmut">（${extra(n)}）</span>`; };
-  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+vrow('持ちメダル投資',pushV(f.pushK,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メ・持ちメ用）</div>`;
-  document.getElementById('viewEn').innerHTML=vrow('獲得枚数',vnum(f.gainMedal,'枚'))+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h':'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
+  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メダル用）</div>`;
+  document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h':'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
   const memoTxt=f.memo?mlEsc(f.memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>';
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
   const sw=(view,edit,locked)=>{const v=document.getElementById(view),ed=document.getElementById(edit);if(v)v.style.display=locked?'block':'none';if(ed)ed.style.display=locked?'none':'block';};
@@ -2668,14 +2749,14 @@ window.memoDone=function(){
   closeMemo(); applyMLLocks();
 };
 let mlSnap={};
-function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo']:sec==='play'?['pushC','pushS','pushK','pushUnit']:sec==='end'?['gainMedal','hours']:['memo']; }
+function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo','startMedal']:sec==='play'?['pushC','pushS','pushUnit','handoffs']:sec==='end'?['endMedal','hours']:['memo']; }
 function snapSec(sec){ const f=curForm(); const o={}; secFields(sec).forEach(k=>o[k]=f[k]); mlSnap[sec]=o; }
 function restoreSec(sec){
   const o=mlSnap[sec]; if(!o) return;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v==null?'':v);};
-  if(sec==='start'){ if(o.playType) sPTm(o.playType); set('fev',o.ev); const fst=document.getElementById('fst'); if(fst&&o.storeIdx!=null) fst.value=String(o.storeIdx); set('fmc',o.machine); set('fno',o.machineNo); }
-  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpk',o.pushK); set('fpu',o.pushUnit); puSync(); }
-  else if(sec==='end'){ set('fga',o.gainMedal); set('fhr',o.hours); }
+  if(sec==='start'){ if(o.playType) sPTm(o.playType); set('fev',o.ev); const fst=document.getElementById('fst'); if(fst&&o.storeIdx!=null) fst.value=String(o.storeIdx); set('fmc',o.machine); set('fno',o.machineNo); set('fsm',o.startMedal); }
+  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpu',o.pushUnit); hoData=(o.handoffs||[]).map(h=>({...h})); renderHoList(); puSync(); }
+  else if(sec==='end'){ set('fem',o.endMedal); set('fhr',o.hours); }
   else { set('fmm',o.memo); }
 }
 function setLock(sec,b){ if(sec==='start')mlStartLock=b; else if(sec==='play')mlPlayLock=b; else if(sec==='end')mlEndLock=b; else mlMemoLock=b; }
@@ -2694,13 +2775,13 @@ window.mlCalc=function(){
     const el=(id,t)=>{const e2=document.getElementById(id); if(e2)e2.textContent=t;};
     el('fpcSub', pn(f.pushC)>0?`= ${(pn(f.pushC)*1000).toLocaleString()}円 ・ ${Math.round(pn(f.pushC)*_mp).toLocaleString()}枚`:'');
     el('fpsSub', pn(f.pushS)>0?`= ${Math.round(pn(f.pushS)*_pu).toLocaleString()}枚`:'');
-    el('fpkSub', pn(f.pushK)>0?`= ${Math.round(pn(f.pushK)*_pu).toLocaleString()}枚`:''); } const v=mlVals(f);
+  } const v=mlVals(f);
   const dv=document.getElementById('cDaiY'), tri=document.getElementById('cDaiT'), pill=document.getElementById('cDai');
   const sign=v.daiYen===null?0:(v.daiYen>0?1:v.daiYen<0?-1:0);
   const cls=sign>0?'pos':sign<0?'neg':'';
-  if(dv){ dv.textContent=v.daiYen===null?'—':(v.daiYen>0?'+':'')+v.daiYen.toLocaleString()+'円'; dv.className='dval '+cls; }
+  if(dv){ const dy=v.daiYen===null?null:Math.round(v.daiYen); dv.textContent=dy===null?'—':(dy>0?'+':'')+dy.toLocaleString()+'円'; dv.className='dval '+cls; }
   if(tri){ tri.textContent=sign>0?'▲':sign<0?'▼':''; tri.className='dtri '+cls; }
-  if(pill){ pill.textContent=v.daiReal===null?'遊戯中 — 獲得枚数を入力すると算出':'メダル '+(v.daiReal>0?'+':'')+v.daiReal.toLocaleString()+'枚'; }
+  if(pill){ pill.textContent=v.daiReal===null?'遊戯中 — 終了時持ちメダルを入力すると算出':'メダル '+(v.daiReal>0?'+':'')+v.daiReal.toLocaleString()+'枚'; }
   const hh=document.getElementById('cHourly');
   if(hh){ hh.textContent=v.hourly===null?'—':(v.hourly>0?'+':'')+v.hourly.toLocaleString()+'円/h'; hh.className='dcv '+(v.hourly>0?'pos':v.hourly<0?'neg':''); }
   const eg=document.getElementById('cEvGap');
@@ -2754,11 +2835,11 @@ window.svML=function(mid,day,editId,mode){
     return;
   }
   if(mode==='done'){
-    const fga=document.getElementById('fga');
-    if(!fga||fga.value===''){
-      mlEndLock=false; applyMLLocks();   // 終了時を開いて獲得枚数へ誘導
-      if(fga){ fga.classList.add('invalid'); try{fga.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){} try{fga.focus({preventScroll:true});}catch(_){fga.focus&&fga.focus();} }
-      const err=document.getElementById('fgaErr'); if(err)err.style.display='block';
+    const fem=document.getElementById('fem');
+    if(!fem||fem.value===''){
+      mlEndLock=false; applyMLLocks();   // 終了時を開いて終了時持ちメダルへ誘導
+      if(fem){ fem.classList.add('invalid'); try{fem.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){} try{fem.focus({preventScroll:true});}catch(_){fem.focus&&fem.focus();} }
+      const err=document.getElementById('femErr'); if(err)err.style.display='block';
       const sheet=document.getElementById('msheet'); if(sheet){ sheet.classList.remove('shake'); void sheet.offsetWidth; sheet.classList.add('shake'); }
       return;
     }
@@ -2771,12 +2852,15 @@ window.svML=function(mid,day,editId,mode){
     day, playType:isEv?'ev':'setting', ev:gv('fev')||0, storeIdx, machine,
     machineNo:document.getElementById('fno')?.value.trim()||'',
     playing:(mode==='play'),                                       // 遊戯中ボタンで保存＝確定するまで遊戯中扱い
-    pushC:gv('fpc')||0, pushS:gv('fps')||0, pushK:gv('fpk')||0,
-    pushUnit:gv('fpu')||((S[storeIdx]||{}).mp||46),                // 貯メ・持ちメの1PUSH枚数（店により異なる）
-    gainMedal:(document.getElementById('fga')?.value!==''?(gv('fga')||0):null),
+    pushC:gv('fpc')||0, pushS:gv('fps')||0,
+    pushUnit:gv('fpu')||((S[storeIdx]||{}).mp||46),                // 貯メダルの1PUSH枚数（店により異なる）
+    startMedal:gv('fsm')||0,                                      // 開始時持ちメダル（枚）
+    handoffs:curHandoffs(),                                       // 受け渡し（相手＋枚数の配列）
+    given:curHandoffs().filter(h=>h.type==='give').reduce((a,h)=>a+h.amount,0),      // 集計互換：渡した合計
+    received:curHandoffs().filter(h=>h.type==='recv').reduce((a,h)=>a+h.amount,0),   // 集計互換：受け取り合計
+    endMedal:(document.getElementById('fem')?.value!==''?(gv('fem')||0):null),   // 終了時持ちメダル（枚）
     invest:(gv('fpc')||0)*1000,                                   // 集計用：現金投資（円）＝PUSH×1000
     usedStored:Math.round((gv('fps')||0)*(gv('fpu')||((S[storeIdx]||{}).mp||46))),   // 集計用：貯メダル投資（枚）
-    usedCarry:Math.round((gv('fpk')||0)*(gv('fpu')||((S[storeIdx]||{}).mp||46))),    // 集計用：持ちメダル投資（枚）
     hours:gv('fhr')||0,
     memo:document.getElementById('fmm')?.value.trim()||'',
     jug:!!document.getElementById('jgSw')?.classList.contains('on'),
@@ -2828,7 +2912,7 @@ window.onFstChange=async function(){
 function confirmBox(msg, onYes, opts){
   opts=opts||{}; const yesL=opts.yes||'削除', noL=opts.no||'キャンセル', yesC=opts.yesClass||'danger';
   let bg=document.getElementById('cfbg');
-  if(!bg){ bg=document.createElement('div'); bg.id='cfbg'; bg.className='modal-bg'; bg.style.cssText='z-index:200;align-items:center;padding:0 28px'; document.body.appendChild(bg); }
+  if(!bg){ bg=document.createElement('div'); bg.id='cfbg'; bg.className='modal-bg'; bg.style.cssText='z-index:400;align-items:center;padding:0 28px'; document.body.appendChild(bg); }
   bg.innerHTML=`<div style="width:100%;max-width:320px;background:#1c1c1e;border:0.5px solid var(--border-strong);border-radius:16px;padding:18px;animation:memoFade .16s ease-out">
     <div style="font-size:14px;color:#e4e4e7;line-height:1.6;white-space:pre-wrap;margin-bottom:15px">${msg}</div>
     <div style="display:flex;gap:10px"><button class="btn" style="flex:1" id="cfNo">${noL}</button><button class="btn ${yesC}" style="flex:1" id="cfYes">${yesL}</button></div>
