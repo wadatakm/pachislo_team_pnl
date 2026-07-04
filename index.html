@@ -150,6 +150,8 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .medal-total-val{font-size:18px;font-weight:700;color:var(--text-success);font-variant-numeric:tabular-nums}
 .medal-total-unit{font-size:11px;font-weight:500;color:var(--text-secondary);margin-left:2px}
 .medal-more{display:block;width:100%;background:none;border:none;color:var(--text-muted);font-size:11px;padding:7px 0 3px;cursor:pointer;text-align:center}
+.mrow-in{animation:mrowIn .28s ease-out both}
+@keyframes mrowIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
 .jgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .jgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .jgrid3 .fr,.jgrid2 .fr{margin-bottom:8px}
@@ -160,6 +162,22 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .jtd{font-size:13px;color:var(--text-primary);font-weight:600;text-align:center;padding:8px 2px;font-variant-numeric:tabular-nums}
 .wlrow.playing{border-left:3px solid #ffb020}
 .mevc.playing{border-left:3px solid #ffb020}
+.setcard{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:12px}
+.setcard-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.setcard .stlabel{margin:0}
+.setcard.danger{border-color:rgba(255,59,48,.35)}
+.setcard .prow:last-of-type{border-bottom:none}
+.wlgraph{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:10px 10px 8px;margin:8px 0 2px}
+.wlg-modes{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.wlg-note{font-size:9px;color:var(--text-muted);margin-top:6px;text-align:center}
+.wlg-total{margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.wlg-tlbl{font-size:10px;color:var(--text-muted);font-weight:600;margin-right:6px}
+.todaybtn{flex:none;margin-left:10px;background:none;border:0.5px solid var(--border-strong);color:var(--text-secondary);font-size:11px;border-radius:999px;padding:4px 11px;cursor:pointer}
+.todaybtn:active{background:#141416}
+.cnum-fade{animation:cnumFade .3s ease-out both}
+@keyframes cnumFade{from{opacity:0}to{opacity:1}}
+.hero-row{display:flex;align-items:center;gap:12px}
+.spark{flex:none;opacity:.9}
 .playbadge{font-size:10px;font-weight:700;color:#ffb020;background:rgba(255,176,32,.12);border:0.5px solid rgba(255,176,32,.4);border-radius:999px;padding:2px 9px}
 .sechd .st.play{color:#ffb020}
 .btn.play{background:rgba(255,176,32,.14);border:0.5px solid rgba(255,176,32,.5);color:#ffb020}
@@ -171,6 +189,13 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .pbtn-minus{width:42px;height:46px;flex:none;background:none;border:0.5px solid var(--border);color:var(--text-muted);font-size:17px;border-radius:12px;cursor:pointer}
 .pbtn-minus:active{background:#141416}
 .psub{font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px}
+.plgrp-lbl{font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;margin:2px 0 7px}
+.plgrp-lbl.sep{border-top:0.5px solid var(--border);padding-top:11px;margin-top:12px}
+.fr.purow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fr.purow{flex-wrap:nowrap}
+.fr.purow .fl{flex:1;min-width:0}
+.fr.purow input#fpu{width:76px!important;flex:none;text-align:center;font-size:16px;font-weight:700;padding:8px 6px}
+.fr.purow select.pusel{width:112px!important;flex:none;background:#000;border:0.5px solid var(--border-strong);color:#fff;font-size:13px;border-radius:9px;padding:8px 8px}
 .blsign{display:flex;gap:8px;margin-bottom:8px}
 .blsg{flex:1;background:#000;border:0.5px solid var(--border-strong);color:var(--text-secondary);font-size:12px;font-weight:600;border-radius:9px;padding:8px 0;cursor:pointer}
 .blsg.on{background:#2c2c2e;color:#fff;border-color:#5b8def}
@@ -523,10 +548,10 @@ body.modal-open #wrap{overflow:hidden!important}
 @keyframes cfOutBalS{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(-20px,12px) scale(.62)}}
 @keyframes cfOutBigS{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(14px) scale(.62)}}
 /* 入場：ふわっとフェードしながら少し広がる／退場：フェードして中心へ */
-.dayfab.anim-in{animation:fabFadeTR .5s cubic-bezier(.2,.6,.3,1) both}
-.dayfab.bal.anim-in{animation-name:fabFadeBR;animation-delay:.05s}
-.dayfab.pay.anim-in{animation-name:fabFadeBL;animation-delay:.1s}
-.dayfab.leave{animation:fabFadeOutTR .3s ease-in both}
+.dayfab.anim-in{animation:fabFadeTR .22s cubic-bezier(.2,.6,.3,1) both}
+.dayfab.bal.anim-in{animation-name:fabFadeBR;animation-delay:.02s}
+.dayfab.pay.anim-in{animation-name:fabFadeBL;animation-delay:.04s}
+.dayfab.leave{animation:fabFadeOutTR .16s ease-in both}
 .dayfab.bal.leave{animation-name:fabFadeOutBR}
 .dayfab.pay.leave{animation-name:fabFadeOutBL}
 @keyframes fabFadeTR{from{opacity:0;transform:translate(-7px,7px) scale(.8)}to{opacity:1;transform:translate(0,0) scale(1)}}
@@ -580,7 +605,7 @@ body.modal-open #wrap{overflow:hidden!important}
 .btn.p{background:var(--fill-accent);border-color:var(--fill-accent);color:var(--on-accent);font-weight:600}
 .btn.danger{background:transparent;color:var(--text-danger);border-color:var(--border-danger)}
 .fr input,.fr select,.fr textarea,.stitem input{background:#000;border:0.5px solid var(--border-strong);color:#fff}
-.fr input.invalid{border-color:var(--text-danger)!important;background:rgba(255,69,58,.06)}
+.fr input.invalid,.fr select.invalid{border-color:var(--text-danger)!important;background:rgba(255,69,58,.06)}
 .ferr{display:none;color:var(--text-danger);font-size:11px;margin-top:5px;font-weight:600}
 .ro{background:#1c1c1e;border:0.5px solid var(--border-strong);color:var(--text-secondary)}
 .ro.sel{border-color:var(--border-accent);color:var(--text-success);background:var(--bg-accent)}
@@ -688,6 +713,7 @@ let myUid = null;   // ログイン中ユーザーのuid
 let N  = [];        // 表示名の配列（=MEMBERS.map(m=>m.name)）。mid でアクセス
 let D  = {};
 let S  = DEF_STORES.map(s=>({...s}));
+let MC = [];   // 機種マスタ（チーム共有・configに保存）
 let MI = {};
 let initCash = 0;   // チーム共通の初期現金（残高・総資産の起点。収支には足さない）
 let entryDocs = []; // 稼働ドキュメントの生データ（uid付き）
@@ -716,7 +742,7 @@ const IC_GEAR='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" strok
 function saveView(){ localStorage.setItem('view', JSON.stringify({cy,cm})); }
 
 // ---- Firestoreへの書き込み（差分のみ・上書き事故を防止）----
-async function saveConfig(){ try{ await setDoc(cfgDoc,{stores:S,initCash}); }catch(e){ alert('保存に失敗しました：'+e.message); } }
+async function saveConfig(){ try{ await setDoc(cfgDoc,{stores:S,initCash,machines:MC}); }catch(e){ alert('保存に失敗しました：'+e.message); } }
 async function saveMedals(){ try{ await setDoc(medalDoc,{mi:MI}); }catch(e){ alert('保存に失敗しました：'+e.message); } }
 
 // ---- 台記録（分析専用・全体収支に非関与）----
@@ -725,6 +751,17 @@ async function saveMLog(mid,log){
   try{ await setDoc(doc(mlogsCol,log.id),{...log,uid,y:cy,mo:cm}); }catch(e){ alert('保存に失敗しました：'+e.message); }
 }
 async function deleteMLog(id){ try{ await deleteDoc(doc(mlogsCol,id)); }catch(e){ alert('削除に失敗しました：'+e.message); } }
+// 機種マスタで名前変更した際、保存済み記録の機種名も一括で書き換える
+window.renameMachineInLogs=async function(ren){
+  let ok=0, ng=0;
+  for(const l of allMLogs()){
+    const nn=ren[l.machine]; if(!nn) continue;
+    const uid=MEMBERS[l.mid]?.uid; if(!uid){ ng++; continue; }
+    try{ await setDoc(doc(mlogsCol,l.id),{...l,machine:nn,uid,y:l.y,mo:l.mo}); ok++; }
+    catch(e){ ng++; }
+  }
+  return {ok,ng};
+};
 async function saveBalance(mid,date,data){
   const uid=MEMBERS[mid]?.uid; if(!uid){ alert('メンバー情報が読み込めていません'); return; }
   try{ await setDoc(doc(balCol,`${mid}_${date}`),{mid,uid,date,stored:data.stored||{},cashIn:data.cashIn||0}); }catch(e){ alert('保存に失敗しました：'+e.message); }
@@ -745,8 +782,9 @@ function mlVals(l){
   const mp=s.mp||46, rate=s.rate||5.16, yen=100/rate;
   const hasEnd=(l.playing!==true) && (l.gainMedal!=null && l.gainMedal!=='' && !isNaN(parseFloat(l.gainMedal)));   // 確定＝「保存」で保存済みかつ獲得枚数あり。遊戯中保存(playing)は常に遊戯中
   // 実収支（枚）＝ 獲得枚数 −（現金＋貯メ＋持ちメ のPUSH合計 × 1PUSH枚数）
-  const cashMedal=mlNum(l.pushC)*mp;
-  const investMedal=(mlNum(l.pushC)+mlNum(l.pushS)+mlNum(l.pushK))*mp;
+  const pu=mlNum(l.pushUnit)||mp;   // 貯メ・持ちメの1PUSH枚数（店により異なる。デフォ=貸出レート）
+  const cashMedal=mlNum(l.pushC)*mp;   // 現金は貸出レートで換算
+  const investMedal=cashMedal+(mlNum(l.pushS)+mlNum(l.pushK))*pu;
   const daiReal=hasEnd?Math.round(mlNum(l.gainMedal)-investMedal):null;
   const daiYen=hasEnd?Math.round(daiReal*yen):null;
   const hrs=mlNum(l.hours);
@@ -808,7 +846,7 @@ function attachListeners(){
   }, err=>console.error('members',err));
   // 店舗設定
   onSnapshot(cfgDoc, async snap=>{
-    if(snap.exists()){ const v=snap.data(); S=(v.stores&&v.stores.length)?v.stores:DEF_STORES.map(s=>({...s})); initCash=v.initCash||0; }
+    if(snap.exists()){ const v=snap.data(); S=(v.stores&&v.stores.length)?v.stores:DEF_STORES.map(s=>({...s})); initCash=v.initCash||0; MC=Array.isArray(v.machines)?v.machines:[]; }
     else { try{ await setDoc(cfgDoc,{stores:S,initCash:0}); }catch(e){} } // 新規チームの初期データ作成
     cfgReady=true; tryRender();
   }, err=>console.error('config',err));
@@ -1111,7 +1149,7 @@ function getCurrentMedal(mid,si){return storedNow(mid,si)}        // 残高＝�
 // ============================================================
 function teamCashBal(){ return cashBalTeam(); }   // 現金残高＝初期現金−現金投資累計（収支管理ベース）
 let fabAnim=false; // 日付の選択/解除のときだけFABアニメを走らせる
-window.pickDay=function(day){
+window.pickDay=function(day){ numForce=true;
   if(selDay===day){
     // 解除：FABを中心へ渦巻いて退場させてから消す
     const fabs=document.querySelectorAll('.cc.sel .dayfab');
@@ -1130,14 +1168,28 @@ function memberMedalBlockHtml(mid){
     +`<div style="display:flex;justify-content:space-between;gap:14px"><span>貯メダル残高</span><span style="color:#9a9aa0;font-weight:600">${m.toLocaleString()}枚 <span style="color:var(--text-muted);font-weight:400">≈${y.toLocaleString()}円</span></span></div>`
     +`</div></div>`;
 }
+// ヒーロー横の小さな折れ線（今月の実収支の日別累積）
+function sparkHtml(vals){
+  if(!vals||!vals.length) return '';
+  let cum=0; const pts=[0,...vals.map(v=>cum+=v)];   // 0起点から累積
+  if(pts.every(p=>p===0)) return '';
+  const w=68,h=24,pad=2;
+  const mn=Math.min(0,...pts), mx=Math.max(0,...pts); const rg=(mx-mn)||1;
+  const xs=pts.map((p,i)=>pad+(w-2*pad)*i/(pts.length-1));
+  const ys=pts.map(p=>h-pad-(h-2*pad)*(p-mn)/rg);
+  const line=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const col=pts[pts.length-1]>=0?'var(--text-success)':'var(--text-danger)';
+  const zeroY=h-pad-(h-2*pad)*(0-mn)/rg;
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="rgba(255,255,255,.14)" stroke-width="1"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
 function balBlockHtml(){
   const cash=teamCashBal(), ms=teamMedalStat(), real=cash+ms.yen;
   const row=(label,val)=>`<div style="display:flex;justify-content:space-between;gap:14px"><span>${label}</span><span style="color:#9a9aa0;font-weight:600">${val}</span></div>`;
   return `<div style="flex-basis:100%;display:flex;justify-content:flex-end">`
     +`<div style="min-width:172px;font-size:11px;color:var(--text-muted);line-height:1.7">`
-    +row('現金残高', cash.toLocaleString()+'円')
-    +row('貯メダル残高', ms.medals.toLocaleString()+'枚')
-    +row('実質残高', real.toLocaleString()+'円')
+    +row('現金残高', `<span data-cnum="t_cbal" data-v="${cash}" data-fmt="loc">${cash.toLocaleString()}円</span>`)
+    +row('貯メダル残高', `<span data-cnum="t_mbal" data-v="${ms.medals}" data-fmt="med">${ms.medals.toLocaleString()}枚</span>`)
+    +row('実質残高', `<span data-cnum="t_rbal" data-v="${real}" data-fmt="loc">${real.toLocaleString()}円</span>`)
     +`</div></div>`;
 }
 
@@ -1145,7 +1197,30 @@ function balBlockHtml(){
 // レンダリング
 // ============================================================
 function dc(){CI.forEach(ch=>{try{ch.destroy()}catch(e){}});CI=[]}
-function ra(){dc();renderTabs();renderViews();syncCfab();fabAnim=false;}
+let NUMPREV={};   // 数字アニメ用：前回値（キー→数値）
+let NUMANIM={};   // キー→直近アニメ発火時刻（連続再描画でアニメが消えるのを防ぐ）
+let numForce=false;   // true=値が同じでもアニメ（日付タップ・月切替時）
+function animNums(){
+  const seen=new Set();
+  document.querySelectorAll('[data-cnum]').forEach(el=>{
+    const key=el.dataset.cnum, to=(el.dataset.none==='1')?null:(parseFloat(el.dataset.v)||0);
+    seen.add(key);
+    const has=(key in NUMPREV);
+    const from=has?NUMPREV[key]:to;   // null＝前回は「—」（非表示）だった
+    NUMPREV[key]=to;
+    const now=Date.now();
+    const cont=(NUMANIM[key]&&now-NUMANIM[key]<300);   // 直前に発火→再構築で消えたアニメを引き継ぐ
+    if(from===to && !numForce && !cont) return;        // 変化なし（初回含む）。タップ/月切替時は同値でも走らせる
+    if(!cont) NUMANIM[key]=now;
+    // 変化した数字は新しい値でふわっと現れるだけ（旧値は表示しない＝残像なし・移動なし）
+    el.classList.remove('cnum-fade'); void el.offsetWidth;
+    el.classList.add('cnum-fade');
+  });
+  // 今回「—」等で表示されなかったキーは null に（次に値が出たらアニメ対象になる）
+  Object.keys(NUMPREV).forEach(k=>{ if(!seen.has(k)) NUMPREV[k]=null; });
+  numForce=false;
+}
+function ra(){dc();renderTabs();renderViews();syncCfab();fabAnim=false;animNums();}
 function dayfabBtn(label, onclick, isView, col){
   // 選択セルの右上に重ねる丸ボタン（指で隠れない位置）
   const eyeIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -1256,20 +1331,21 @@ function rMember(container,mid){
       <button class="mnav" onclick="chM(-1)">‹</button>
       <span class="topbar-title">${cy}年${cm+1}月</span>
       <button class="mnav" onclick="chM(1)">›</button>
+      <button class="todaybtn" onclick="goThisMonth()">今日</button>
     </div>
     <div class="vhead"><div class="av">${avatarHtml(mid)}</div><div class="nm">${N[mid]}</div>${isSelf?'':'<span style="font-size:10px;color:var(--text-muted);border:0.5px solid var(--border-strong);border-radius:999px;padding:2px 8px;margin-left:2px">閲覧のみ</span>'}</div>
     <div class="hero">
-      <div class="hero-v ${c(heroReal)}">${f(heroReal)}</div>
-      <div class="hero-l">${selDay!=null?`${cm+1}月${selDay}日 実質収支`:`${cm+1}月 実質収支`}</div>
+      <div class="hero-row"><div class="hero-v ${c(heroReal)}"><span data-cnum="m${mid}_real" data-v="${heroReal}" data-fmt="f">${f(heroReal)}</span></div>${sparkHtml(selDay!=null?gML(mid,cy,cm).filter(l=>l.day===selDay).sort((a,b)=>String(a.id).localeCompare(String(b.id))).map(l=>mlVals(l).daiYen||0):Array.from({length:dim(cy,cm)},(_,i)=>mlDayReal(mid,cy,cm,i+1)))}</div>
+      <div class="hero-l">${selDay!=null?`${cm+1}月${selDay}日 実収支`:`${cm+1}月 実収支`}</div>
     </div>
     <div class="statrow">
       <div class="statgrid">
-        <div class="statc"><div class="sl">現金投資</div><div class="sv" style="color:var(--text-muted)">${heroInvest>0?heroInvest.toLocaleString()+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">時給</div><div class="sv ${heroHours>0?c(Math.round(heroReal/heroHours)):'zero'}">${heroHours>0?fh(heroReal/heroHours)+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">稼働</div><div class="sv" style="color:var(--text-muted)">${heroHours>0?heroHours.toFixed(1)+'h':'—'}</div></div>
-        <div class="statc"><div class="sl">現金収支</div><div class="sv ${c(heroCash)}">${f(heroCash)}</div></div>
-        <div class="statc"><div class="sl">EV</div><div class="sv" style="color:var(--text-muted)">${heroEv>0?heroEv.toLocaleString()+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">EV差</div><div class="sv ${heroEv>0?c(heroEvGap):'zero'}">${heroEv>0?f(heroEvGap):'—'}</div></div>
+        <div class="statc"><div class="sl">現金投資</div><div class="sv" style="color:var(--text-muted)">${heroInvest>0?`<span data-cnum="m${mid}_inv" data-v="${heroInvest}" data-fmt="loc">${heroInvest.toLocaleString()}円</span>`:`<span data-cnum="m${mid}_inv" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">時給</div><div class="sv ${heroHours>0?c(Math.round(heroReal/heroHours)):'zero'}">${heroHours>0?`<span data-cnum="m${mid}_hr" data-v="${Math.round(heroReal/heroHours)}" data-fmt="fh">${fh(heroReal/heroHours)}円</span>`:`<span data-cnum="m${mid}_hr" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">稼働</div><div class="sv" style="color:var(--text-muted)">${heroHours>0?`<span data-cnum="m${mid}_hrs" data-v="${heroHours}" data-fmt="h">${heroHours.toFixed(1)}h</span>`:`<span data-cnum="m${mid}_hrs" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">現金収支</div><div class="sv ${c(heroCash)}"><span data-cnum="m${mid}_cash" data-v="${heroCash}" data-fmt="f">${f(heroCash)}</span></div></div>
+        <div class="statc"><div class="sl">EV</div><div class="sv" style="color:var(--text-muted)">${heroEv>0?`<span data-cnum="m${mid}_ev" data-v="${heroEv}" data-fmt="loc">${heroEv.toLocaleString()}円</span>`:`<span data-cnum="m${mid}_ev" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">EV差</div><div class="sv ${heroEv>0?c(heroEvGap):'zero'}">${heroEv>0?`<span data-cnum="m${mid}_evg" data-v="${heroEvGap}" data-fmt="f">${f(heroEvGap)}</span>`:`<span data-cnum="m${mid}_evg" data-none="1">—</span>`}</div></div>
         <div style="grid-column:3 / 5;grid-row:2;align-self:center">${memberMedalBlockHtml(mid)}</div>
       </div>
     </div>
@@ -1295,7 +1371,11 @@ function rMember(container,mid){
 function rTeam(container){
   const div=document.createElement('div');
   div.className='view';
-  const sums=N.map((_,i)=>{ const real=mlMonthReal(i,cy,cm), hrs=mlHoursMonth(i,cy,cm); return {real, hourly:hrs>0?Math.round(real/hrs):null}; });
+  const sums=N.map((_,i)=>{
+    const real=(selDay!=null)?mlDayReal(i,cy,cm,selDay):mlMonthReal(i,cy,cm);
+    const hrs=(selDay!=null)?mlHoursDay(i,cy,cm,selDay):mlHoursMonth(i,cy,cm);
+    return {real, hourly:hrs>0?Math.round(real/hrs):null};
+  });
   const heroReal=(selDay!=null)?mlTeamDayReal(cy,cm,selDay):mlTeamMonthReal(cy,cm);
   const heroInvest=(selDay!=null)?mlTeamInvestDay(cy,cm,selDay):mlTeamInvestMonth(cy,cm);
   const heroEv=(selDay!=null)?mlTeamEvDay(cy,cm,selDay):mlTeamEvMonth(cy,cm);
@@ -1315,24 +1395,25 @@ function rTeam(container){
       <button class="mnav" onclick="chM(-1)">‹</button>
       <span class="topbar-title">${cy}年${cm+1}月</span>
       <button class="mnav" onclick="chM(1)">›</button>
+      <button class="todaybtn" onclick="goThisMonth()">今日</button>
     </div>
     <div class="vhead"><div class="av" style="background:var(--bg-accent);color:var(--text-success)">${(teamName||'チ').slice(0,1)}</div><div class="nm">${teamName||'チーム'}</div></div>
     <div class="hero">
-      <div class="hero-v ${c(heroReal)}">${f(heroReal)}</div>
-      <div class="hero-l">${selDay!=null?`${cm+1}月${selDay}日 のチーム実質収支`:`${cm+1}月 チーム実質収支`}</div>
+      <div class="hero-row"><div class="hero-v ${c(heroReal)}"><span data-cnum="t_real" data-v="${heroReal}" data-fmt="f">${f(heroReal)}</span></div>${sparkHtml(selDay!=null?(()=>{const rs=[];N.forEach((_,m2)=>gML(m2,cy,cm).filter(l=>l.day===selDay).forEach(l=>rs.push(l)));return rs.sort((a,b)=>String(a.id).localeCompare(String(b.id))).map(l=>mlVals(l).daiYen||0);})():Array.from({length:dim(cy,cm)},(_,i)=>mlTeamDayReal(cy,cm,i+1)))}</div>
+      <div class="hero-l">${selDay!=null?`${cm+1}月${selDay}日 のチーム実収支`:`${cm+1}月 チーム実収支`}</div>
     </div>
     <div class="statrow">
       <div class="statgrid">
-        <div class="statc"><div class="sl">現金投資</div><div class="sv" style="color:var(--text-muted)">${heroInvest>0?heroInvest.toLocaleString()+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">チーム時給</div><div class="sv ${heroHours>0?c(Math.round(heroReal/heroHours)):'zero'}">${heroHours>0?fh(heroReal/heroHours)+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">稼働</div><div class="sv" style="color:var(--text-muted)">${heroHours>0?heroHours.toFixed(1)+'h':'—'}</div></div>
-        <div class="statc"><div class="sl">現金収支</div><div class="sv ${c(heroCash)}">${f(heroCash)}</div></div>
-        <div class="statc"><div class="sl">EV</div><div class="sv" style="color:var(--text-muted)">${heroEv>0?heroEv.toLocaleString()+'円':'—'}</div></div>
-        <div class="statc"><div class="sl">EV差</div><div class="sv ${heroEv>0?c(heroEvGap):'zero'}">${heroEv>0?f(heroEvGap):'—'}</div></div>
+        <div class="statc"><div class="sl">現金投資</div><div class="sv" style="color:var(--text-muted)">${heroInvest>0?`<span data-cnum="t_inv" data-v="${heroInvest}" data-fmt="loc">${heroInvest.toLocaleString()}円</span>`:`<span data-cnum="t_inv" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">チーム時給</div><div class="sv ${heroHours>0?c(Math.round(heroReal/heroHours)):'zero'}">${heroHours>0?`<span data-cnum="t_hr" data-v="${Math.round(heroReal/heroHours)}" data-fmt="fh">${fh(heroReal/heroHours)}円</span>`:`<span data-cnum="t_hr" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">稼働</div><div class="sv" style="color:var(--text-muted)">${heroHours>0?`<span data-cnum="t_hrs" data-v="${heroHours}" data-fmt="h">${heroHours.toFixed(1)}h</span>`:`<span data-cnum="t_hrs" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">現金収支</div><div class="sv ${c(heroCash)}"><span data-cnum="t_cash" data-v="${heroCash}" data-fmt="f">${f(heroCash)}</span></div></div>
+        <div class="statc"><div class="sl">EV</div><div class="sv" style="color:var(--text-muted)">${heroEv>0?`<span data-cnum="t_ev" data-v="${heroEv}" data-fmt="loc">${heroEv.toLocaleString()}円</span>`:`<span data-cnum="t_ev" data-none="1">—</span>`}</div></div>
+        <div class="statc"><div class="sl">EV差</div><div class="sv ${heroEv>0?c(heroEvGap):'zero'}">${heroEv>0?`<span data-cnum="t_evg" data-v="${heroEvGap}" data-fmt="f">${f(heroEvGap)}</span>`:`<span data-cnum="t_evg" data-none="1">—</span>`}</div></div>
         <div style="grid-column:3 / 5;grid-row:2;align-self:start">${balBlockHtml()}</div>
       </div>
     </div>
-    <div class="tmrow">${sums.map((s,i)=>`<div class="tm"><div class="tmn">${avatarMini(i)}${N[i]}</div><div class="tmv ${c(s.real)}">${f(s.real)}</div>${s.hourly!==null?`<div style="font-size:9px;color:var(--text-muted);margin-top:1px">${fh(s.hourly)}円/h</div>`:''}</div>`).join('')}</div>
+    <div class="tmrow">${sums.map((s,i)=>`<div class="tm"><div class="tmn">${avatarMini(i)}${N[i]}</div><div class="tmv ${c(s.real)}"><span data-cnum="tm${i}_real" data-v="${s.real}" data-fmt="f">${f(s.real)}</span></div>${s.hourly!==null?`<div style="font-size:9px;color:var(--text-muted);margin-top:1px"><span data-cnum="tm${i}_hr" data-v="${s.hourly}" data-fmt="fh">${fh(s.hourly)}円</span>/h</div>`:''}</div>`).join('')}</div>
     <div class="cal">${(()=>{
       const out=['日','月','火','水','木','金','土'].map((d,i)=>`<div class="cdow${i===0?' s':i===6?' sa':''}">${d}</div>`);
       for(let b=0;b<first;b++) out.push('<div class="cc emp"></div>');
@@ -1354,7 +1435,8 @@ function rTeam(container){
 
 const MEDAL_SHOW_MAX=2;          // 各メンバーのデフォ表示店舗数（均等・画面に3人の合計が収まる想定）
 let medalExpand={};              // mid → 展開中か
-window.medalToggle=function(mid){ medalExpand[mid]=!medalExpand[mid]; ra(); };
+let medalAnimMid=null;           // 直前に展開したメンバー（行のスライドイン用）
+window.medalToggle=function(mid){ medalExpand[mid]=!medalExpand[mid]; medalAnimMid=medalExpand[mid]?mid:null; ra(); };
 function rMedal(container){
   const div=document.createElement('div');
   div.className='viewscroll';
@@ -1373,7 +1455,14 @@ function rMedal(container){
     <div class="medal-sec">
       ${N.map((name,mid)=>{
         const sel=selStores(mid);
-        let mMed=0,mYen=0; sel.forEach((si)=>{const cur=getCurrentMedal(mid,si);mMed+=cur;mYen+=mY(cur,si);});
+        let mMed=0,mYen=0,mRecent=0,mMonth=0;
+        sel.forEach((si)=>{
+          const cur=getCurrentMedal(mid,si);mMed+=cur;mYen+=mY(cur,si);
+          const info=storedAsOfInfo(mid,si,'9999-99-99',true);
+          const prev=info.date?storedAsOf(mid,si,info.date,false):null;
+          if(info.date&&prev!=null) mRecent+=cur-prev;
+          mMonth+=monthMedalDiff(mid,si);
+        });
         const open=!!medalExpand[mid];
         const shown=open?sel:sel.slice(0,MEDAL_SHOW_MAX);              // デフォは各メンバー先頭◯店だけ（均等ルール）
         const hidden=sel.length-shown.length;
@@ -1400,19 +1489,23 @@ function rMedal(container){
         return `
         <div class="medal-member">
           <div class="medal-member-name" style="display:flex;align-items:center">${avatarMini(mid)}${name}${MEMBERS[mid]&&MEMBERS[mid].uid===myUid?'<span class="you" style="font-size:10px;color:var(--text-muted);margin-left:6px">あなた</span>':''}</div>
-          ${shown.map(storeRow).join('')}
+          ${shown.map((si,idx)=>(medalAnimMid===mid&&idx>=MEDAL_SHOW_MAX)?storeRow(si).replace('class="medal-store-row"',`class="medal-store-row mrow-in" style="animation-delay:${((idx-MEDAL_SHOW_MAX)*0.045).toFixed(3)}s"`):storeRow(si)).join('')}
           ${hidden>0?`<button class="medal-more" onclick="medalToggle(${mid})">他${hidden}店舗を表示 ▾</button>`:''}
           ${open&&sel.length>MEDAL_SHOW_MAX?`<button class="medal-more" onclick="medalToggle(${mid})">たたむ ▴</button>`:''}
           <div class="medal-total-row">
-            <div class="medal-total-lbl">合計</div>
+            <div>
+              <div class="medal-total-lbl">合計</div>
+              <div class="medal-store-sub">${(()=>{const tag=(l,d)=>`${l} <span class="${d>0?'pos':d<0?'neg':''}">${d>0?'+':''}${d.toLocaleString()}枚</span>`;return `${tag('直近',mRecent)} ・ ${tag('今月',mMonth)}`;})()}</div>
+            </div>
             <div style="text-align:right">
-              <div class="medal-total-val">${mMed.toLocaleString()}<span class="medal-total-unit">枚</span></div>
+              <div class="medal-total-val"><span data-cnum="md${mid}_tot" data-v="${mMed}" data-fmt="med">${mMed.toLocaleString()}枚</span></div>
               <div class="medal-store-sub">≈${mYen.toLocaleString()}円</div>
             </div>
           </div>
         </div>`;}).join('')}
     </div>`;
   container.appendChild(div);
+  medalAnimMid=null;   // 展開アニメは一度だけ
 }
 
 // ============================================================
@@ -1443,7 +1536,7 @@ function anaAgg(logs){
 function anaVal(logs){ const a=anaAgg(logs); return anaMetric==='real'?a.real:anaMetric==='hours'?a.hrs:anaMetric==='count'?a.count:anaMetric==='evgap'?a.evgap:a.hourly; }
 function anaFmt(v){ if(v==null) return '—'; if(anaMetric==='hours') return (Math.round(v*10)/10)+'h'; if(anaMetric==='count') return v+'台'; if(anaMetric==='hourly') return fh(v)+'円'; return f(v); }
 function anaCls(v){ if(v==null) return 'zero'; if(anaMetric==='hours'||anaMetric==='count') return ''; return c(v); }
-const ANA_METRICS=[['real','実質収支'],['hourly','時給'],['evgap','EV差'],['hours','稼働'],['count','台数']];
+const ANA_METRICS=[['real','実収支'],['hourly','時給'],['evgap','EV差'],['hours','稼働'],['count','台数']];
 const ANA_BREAKS=[['machine','機種別'],['store','店別'],['member','メンバー別'],['machineNo','台番別']];
 function anaCands(){ const ml=allMLogs(); const mc=new Set(),no=new Set(); ml.forEach(l=>{ mc.add(l.machine||'(未入力)'); no.add(l.machineNo||'(未入力)'); }); return {machine:[...mc].sort(),machineNo:[...no].sort((a,b)=>(parseFloat(a)||0)-(parseFloat(b)||0))}; }
 function anaBreakdown(){
@@ -1501,6 +1594,8 @@ function anaTrend(){
   }
 }
 window.anaSetMetric=function(m){ anaMetric=m; ra(); };
+let anaGraphMode='bar';   // 分析グラフの表示：line/bar/cum
+window.anaGraphSet=function(m){ anaGraphMode=m; ra(); };
 window.anaSetBreak=function(b){ anaBreak=b; ra(); };
 window.anaOpenFilter=function(k){ anaFilterOpen=(anaFilterOpen===k)?null:k; ra(); };
 window.anaToggle=function(kind,val){ const set=anaFil[kind]; const v=(kind==='store'||kind==='member')?+val:val; if(set.has(v)) set.delete(v); else set.add(v); ra(); };
@@ -1554,7 +1649,14 @@ function rAnalysis(container){
         </div>
       </div>
       ${trend?`<div class="acard"><div class="actitle">${metricLabel}の推移（${trend.unit}）</div>
-        <div style="position:relative;width:100%;height:170px"><canvas id="anaCb" role="img" aria-label="推移グラフ"></canvas></div></div>`:''}
+        <div class="wlg-modes" style="margin:8px 0">
+          <button class="afpill${anaGraphMode==='line'?' on':''}" onclick="anaGraphSet('line')">折れ線</button>
+          <button class="afpill${anaGraphMode==='bar'?' on':''}" onclick="anaGraphSet('bar')">棒グラフ</button>
+          <button class="afpill${anaGraphMode==='cum'?' on':''}" onclick="anaGraphSet('cum')">累計</button>
+        </div>
+        <div style="position:relative;width:100%;height:170px"><canvas id="anaCb" role="img" aria-label="推移グラフ"></canvas></div>
+        ${anaGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からの${metricLabel}の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ ${trend.unit.replace('別','')}ごとの${metricLabel}</div>`}
+      </div>`:''}
       <div class="acard">
         <div class="actitle">内訳（何ごとに見るか）</div>
         <div class="anaseg sm">${ANA_BREAKS.map(([k,lab])=>`<button class="asg${anaBreak===k?' a':''}" onclick="anaSetBreak('${k}')">${lab}</button>`).join('')}</div>
@@ -1571,22 +1673,56 @@ function rAnalysis(container){
   container.appendChild(div);
 
   if(trend){ setTimeout(()=>{ const cv=document.getElementById('anaCb'); if(!cv)return;
-    const pos=trend.data.map(v=>v>=0?v:0), neg=trend.data.map(v=>v<0?v:0);
-    const ds=(anaMetric==='hours'||anaMetric==='count')
-      ? [{label:metricLabel,data:trend.data,backgroundColor:'#3a9bff99',borderColor:'#3a9bff',borderWidth:1,borderRadius:2}]
-      : [{label:'プラス',data:pos,backgroundColor:'#00e08a99',borderColor:'#00e08a',borderWidth:1,borderRadius:2},{label:'マイナス',data:neg,backgroundColor:'#ff5d5d99',borderColor:'#ff5d5d',borderWidth:1,borderRadius:2}];
-    CI.push(new Chart(cv,{type:'bar',data:{labels:trend.labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{font:{size:8},maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{font:{size:9},callback:v=>v===0?'0':(anaMetric==='hours'?v+'h':anaMetric==='count'?v:f(v))},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
+    const yFmt=v=>v===0?'0':(anaMetric==='hours'?v+'h':anaMetric==='count'?v:f(v));
+    const yScale={ticks:{font:{size:9},callback:yFmt},grid:{color:'rgba(128,128,128,0.1)'}};
+    const xScale={ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:10},grid:{display:false}};
+    const neutral=(anaMetric==='hours'||anaMetric==='count');
+    if(anaGraphMode==='cum'){
+      let c2=0; const cum=trend.data.map(v=>c2+=v);
+      CI.push(new Chart(cv,{type:'line',data:{labels:trend.labels,datasets:[{data:cum,borderWidth:2,tension:.25,
+        segment:{borderColor:ctx=>(neutral?'#3a9bff':((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d'))},
+        borderColor:neutral?'#3a9bff':'#00e08a',
+        fill:neutral?{target:'origin',above:'rgba(58,155,255,.2)',below:'rgba(58,155,255,.2)'}:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},
+        pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:xScale,y:yScale}}}));
+    } else if(anaGraphMode==='line'){
+      const dotCols=trend.data.map(v=>neutral?'#3a9bff':(v>=0?'#00e08a':'#ff5d5d'));
+      CI.push(new Chart(cv,{type:'line',data:{labels:trend.labels,datasets:[{data:trend.data,borderWidth:2,tension:.25,
+        segment:{borderColor:ctx=>(neutral?'#3a9bff':((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d'))},
+        borderColor:neutral?'#3a9bff':'#00e08a',
+        fill:{target:'origin',above:neutral?'rgba(58,155,255,.2)':'rgba(0,224,138,.22)',below:neutral?'rgba(58,155,255,.2)':'rgba(255,93,93,.22)'},
+        pointRadius:trend.data.length<=25?3:0,pointBackgroundColor:dotCols,pointBorderColor:dotCols}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:xScale,y:yScale}}}));
+    } else {
+      const pos=trend.data.map(v=>v>=0?v:0), neg=trend.data.map(v=>v<0?v:0);
+      const ds=neutral
+        ? [{label:metricLabel,data:trend.data,backgroundColor:'#3a9bff99',borderColor:'#3a9bff',borderWidth:1,borderRadius:2}]
+        : [{label:'プラス',data:pos,backgroundColor:'#00e08a99',borderColor:'#00e08a',borderWidth:1,borderRadius:2},{label:'マイナス',data:neg,backgroundColor:'#ff5d5d99',borderColor:'#ff5d5d',borderWidth:1,borderRadius:2}];
+      CI.push(new Chart(cv,{type:'bar',data:{labels:trend.labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{...xScale,stacked:true},y:{...yScale,stacked:true}}}}));
+    }
   },80); }
 }
 
+let wlGraphOpen=false, wlGraphMode='line';   // 稼働一覧のグラフ（開閉・折れ線/棒）
+window.wlGraphToggle=function(){ wlGraphOpen=!wlGraphOpen; ra(); };
+window.wlGraphSet=function(m){ wlGraphMode=m; ra(); };
+// 絞り込み結果（確定のみ）を日付ごとに集計 → {labels, day, cum}
+function wlGraphData(rows){
+  const byDay={};
+  rows.forEach(l=>{ const v=mlVals(l); if(!v.hasEnd) return;
+    const k=`${l.y}-${String(l.mo+1).padStart(2,'0')}-${String(l.day).padStart(2,'0')}`;
+    byDay[k]=(byDay[k]||0)+(v.daiYen||0); });
+  const keys=Object.keys(byDay).sort();
+  const labels=keys.map(k=>`${+k.slice(5,7)}/${+k.slice(8,10)}`);
+  const day=keys.map(k=>byDay[k]);
+  let c=0; const cum=day.map(v=>c+=v);
+  return {labels, day, cum};
+}
 // ============================================================
 // 稼働一覧（全メンバーの台記録・フィルタ＋ソート）
 // ============================================================
 let wlSort='date_desc';
-let wlOnlyOpen=false;  // 獲得枚数未入力（遊戯中）だけ表示
-let wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set()};
+let wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set(),status:new Set()};
 let wlFilterOpen=null;
-const WL_PERIODS=[['all','すべて'],['today','本日'],['week','今週'],['month','今月'],['last7','直近7日'],['last30','直近30日'],['thisyear','今年'],['lastyear','去年']];
+const WL_PERIODS=[['all','すべて'],['today','本日'],['week','今週'],['lastweek','先週'],['month','今月'],['lastmonth','先月'],['last7','直近7日'],['last30','直近30日'],['thisyear','今年'],['lastyear','去年']];
 // 期間指定の状態（wl=稼働一覧 / ana=収支分析 で独立）
 const PR={
   wl:{period:'all',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
@@ -1608,6 +1744,8 @@ function prRange(tgt){
   if(wlPeriod==='month'){ const s=new Date(t.getFullYear(),t.getMonth(),1); return {from:ymd(s),to:todayStr}; }
   if(wlPeriod==='last7'){ const s=new Date(t); s.setDate(t.getDate()-6); return {from:ymd(s),to:todayStr}; }
   if(wlPeriod==='last30'){ const s=new Date(t); s.setDate(t.getDate()-29); return {from:ymd(s),to:todayStr}; }
+  if(wlPeriod==='lastweek'){ const dow=(t.getDay()+6)%7; const mon=new Date(t); mon.setDate(t.getDate()-dow-7); const sun=new Date(mon); sun.setDate(mon.getDate()+6); return {from:ymd(mon),to:ymd(sun)}; }
+  if(wlPeriod==='lastmonth'){ const y=t.getMonth()===0?t.getFullYear()-1:t.getFullYear(); const m2=(t.getMonth()+11)%12; return {from:`${y}-${String(m2+1).padStart(2,'0')}-01`,to:`${y}-${String(m2+1).padStart(2,'0')}-${String(dim(y,m2)).padStart(2,'0')}`}; }
   if(wlPeriod==='thisyear'){ return {from:`${t.getFullYear()}-01-01`,to:todayStr}; }
   if(wlPeriod==='lastyear'){ const y=t.getFullYear()-1; return {from:`${y}-01-01`,to:`${y}-12-31`}; }
   return {from:null,to:null};
@@ -1618,12 +1756,13 @@ function wlPass(l){
   if(wlFil.store.size && !wlFil.store.has(l.storeIdx||0)) return false;
   if(wlFil.member.size && !wlFil.member.has(l.mid)) return false;
   if(wlFil.machineNo.size && !wlFil.machineNo.has(l.machineNo||'(未入力)')) return false;
+  if(wlFil.status.size && !wlFil.status.has(mlVals(l).hasEnd?'done':'playing')) return false;
   const {from,to}=prRange('wl');
   if(from||to){ const d=wlLogDate(l); if(from && d<from) return false; if(to && d>to) return false; }
   return true;
 }
 function wlSorted(){
-  const logs=allMLogs().filter(wlPass).filter(l=> !wlOnlyOpen || !mlVals(l).hasEnd);
+  const logs=allMLogs().filter(wlPass);
   const real=l=>mlVals(l).daiYen||0, hrs=l=>parseFloat(l.hours)||0, dnum=l=>l.y*10000+l.mo*100+(l.day||0);
   const hrly=l=>{const v=mlVals(l);return v.hourly==null?-1e15:v.hourly;};
   const no=l=>{const n=parseFloat(l.machineNo);return isNaN(n)?Infinity:n;};
@@ -1640,11 +1779,10 @@ function wlSorted(){
   return logs.sort(cmp);
 }
 window.wlSetSort=function(v){ wlSort=v; ra(); };
-window.wlToggleOpen=function(){ wlOnlyOpen=!wlOnlyOpen; ra(); };
 window.wlOpenFilter=function(k){ wlFilterOpen=(wlFilterOpen===k)?null:k; ra(); };
 window.wlToggle=function(kind,val){ const set=wlFil[kind]; const v=(kind==='store'||kind==='member')?+val:val; if(set.has(v)) set.delete(v); else set.add(v); ra(); };
 window.wlClear=function(kind){ wlFil[kind]=new Set(); ra(); };
-window.wlClearAll=function(){ wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set()}; wlFilterOpen=null; ra(); };
+window.wlClearAll=function(){ wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set(),status:new Set()}; wlFilterOpen=null; ra(); };
 
 window.wlEdit=function(mid,y,mo,day,id){ cy=+y; cm=+mo; selDay=null; oForm(+mid,+day,id); };
 
@@ -1751,9 +1889,9 @@ window.prCalDone=function(t){
 window.prCalCancel=function(t){ const P=PR[t]; P.calOpen=false; P.selFrom=null; P.selTo=null; ra(); };
 function wlFilterBar(){
   const cands=anaCands();
-  const opts={ machine:cands.machine.map(m=>[m,m]), store:S.map((s,i)=>[i,s.name]), member:N.map((n,i)=>[i,n]), machineNo:cands.machineNo.map(no=>[no, no==='(未入力)'?'台番なし':'#'+no]) };
-  const labels={machine:'機種',store:'店',member:'メンバー',machineNo:'台番'};
-  const pills=['machine','store','member','machineNo'].map(k=>{
+  const opts={ machine:cands.machine.map(m=>[m,m]), store:S.map((s,i)=>[i,s.name]), member:N.map((n,i)=>[i,n]), machineNo:cands.machineNo.map(no=>[no, no==='(未入力)'?'台番なし':'#'+no]), status:[['playing','遊戯中'],['done','確定済み']] };
+  const labels={machine:'機種',store:'店',member:'メンバー',machineNo:'台番',status:'ステータス'};
+  const pills=['status','machine','store','member','machineNo'].map(k=>{
     const n=wlFil[k].size; const active=wlFilterOpen===k;
     return `<button class="afpill${n?' has':''}${active?' open':''}" onclick="wlOpenFilter('${k}')">${labels[k]}${n?` <span class="afn">${n}</span>`:''}</button>`;
   }).join('');
@@ -1761,7 +1899,7 @@ function wlFilterBar(){
   if(wlFilterOpen){ const k=wlFilterOpen; const set=wlFil[k];
     panel=`<div class="afpanel"><div class="afchips">${opts[k].map(([v,lab])=>{const sel=set.has((k==='store'||k==='member')?+v:v);return `<button class="afchip${sel?' on':''}" onclick="wlToggle('${k}','${String(v).replace(/'/g,"")}')">${typeof lab==='string'?lab.replace(/</g,'&lt;'):lab}</button>`;}).join('')||'<span style="font-size:11px;color:var(--text-muted)">候補がありません</span>'}</div>${set.size?`<button class="aflink" onclick="wlClear('${k}')">この絞り込みを解除</button>`:''}</div>`;
   }
-  const anyFil=wlFil.machine.size||wlFil.store.size||wlFil.member.size||wlFil.machineNo.size;
+  const anyFil=wlFil.machine.size||wlFil.store.size||wlFil.member.size||wlFil.machineNo.size||wlFil.status.size;
   return `<div class="analbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/></svg>絞り込み</div><div class="afbar">${pills}${anyFil?`<button class="afpill clr" onclick="wlClearAll()">全解除</button>`:''}</div>${panel}`;
 }
 
@@ -1790,11 +1928,52 @@ function rWorkLog(container){
     <div class="topbar"><span class="topbar-title">稼働一覧</span><span class="topbar-val ${c(total)}">${f(total)}</span></div>
     ${prPeriodBar('wl')}
     ${wlFilterBar()}
-    <div class="wlbar"><span class="wlcount">${rows.length}件</span><label class="swwrap"><span class="swlbl">遊戯中のみ</span><button class="sw${wlOnlyOpen?' on':''}" role="switch" aria-checked="${wlOnlyOpen}" onclick="wlToggleOpen()"><span class="swk"></span></button></label><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
+    <div class="wlbar"><span class="wlcount">${rows.length}件</span><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
+    <div style="padding:0 0 2px"><button class="tlink" onclick="wlGraphToggle()">${wlGraphOpen?'グラフを閉じる ▴':'グラフを表示 ▾'}</button></div>
+    ${wlGraphOpen?(()=>{
+      let tot=0,cnt=0; rows.forEach(l=>{const v=mlVals(l); if(v.hasEnd){tot+=v.daiYen||0;cnt++;}});
+      return `
+    <div class="wlgraph">
+      <div class="wlg-modes">
+        <button class="afpill${wlGraphMode==='line'?' on':''}" onclick="wlGraphSet('line')">折れ線</button>
+        <button class="afpill${wlGraphMode==='bar'?' on':''}" onclick="wlGraphSet('bar')">棒グラフ</button>
+        <button class="afpill${wlGraphMode==='cum'?' on':''}" onclick="wlGraphSet('cum')">累計</button>
+        <span class="wlg-total"><span class="wlg-tlbl">合計（${cnt}件）</span><span class="${c(tot)}">${f(tot)}</span></span>
+      </div>
+      <div style="height:170px"><canvas id="wlCb"></canvas></div>
+      ${wlGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からその日までの実収支の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ その日の実収支</div>`}
+    </div>`;})():''}
     <div class="asec">
       ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':(rowsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊戯中</div><div class="wllist">${rowsP.map(wlRow).join('')}</div>${rowsD.length?`<div class="mev-seclbl">確定済み</div><div class="wllist">${rowsD.map(wlRow).join('')}</div>`:''}`:`<div class="wllist">${rowsD.map(wlRow).join('')}</div>`)}
     </div>`;
   container.appendChild(div);
+
+  // 絞り込み結果のグラフ（累積折れ線／日別棒）
+  if(wlGraphOpen){ setTimeout(()=>{ const cv=document.getElementById('wlCb'); if(!cv)return;
+    const gd=wlGraphData(rows);
+    if(!gd.labels.length){ cv.parentElement.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:12px">確定済みの記録がありません</div>'; return; }
+    if(wlGraphMode==='cum'){
+      CI.push(new Chart(cv,{type:'line',data:{labels:gd.labels,datasets:[{data:gd.cum,
+        borderWidth:2,tension:.25,
+        segment:{borderColor:ctx=>((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d')},
+        borderColor:'#00e08a',
+        fill:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},
+        pointRadius:0}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v===0?'0':f(v)},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
+    } else if(wlGraphMode==='line'){
+      const dotCols=gd.day.map(v=>v>=0?'#00e08a':'#ff5d5d');
+      CI.push(new Chart(cv,{type:'line',data:{labels:gd.labels,datasets:[{data:gd.day,
+        borderWidth:2,tension:.25,
+        segment:{borderColor:ctx=>((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d')},   // プラス区間=緑線／マイナス区間=赤線
+        borderColor:'#00e08a',
+        fill:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},            // 0ラインとの間を薄く塗る
+        pointRadius:gd.day.length<=25?3:0,pointBackgroundColor:dotCols,pointBorderColor:dotCols}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v===0?'0':f(v)},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
+    } else {
+      const pos=gd.day.map(v=>v>=0?v:0), neg=gd.day.map(v=>v<0?v:0);
+      CI.push(new Chart(cv,{type:'bar',data:{labels:gd.labels,datasets:[{label:'プラス',data:pos,backgroundColor:'#00e08a99',borderColor:'#00e08a',borderWidth:1,borderRadius:2},{label:'マイナス',data:neg,backgroundColor:'#ff5d5d99',borderColor:'#ff5d5d',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:10},grid:{display:false}},y:{stacked:true,ticks:{font:{size:9},callback:v=>v===0?'0':f(v)},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
+    }
+  },80); }
 }
 
 // ============================================================
@@ -1804,7 +1983,8 @@ window.sAP=function(p){ap=p;ra()}
 window.sY=function(v){sy=+v;ra()}
 window.sGM=function(m){gMode=m;ra()}
 window.sGMon=function(v){gMon=+v;ra()}
-window.chM=function(d){cm+=d;if(cm>11){cm=0;cy++}if(cm<0){cm=11;cy--}selDay=null;saveView();ra()}
+window.chM=function(d){numForce=true;cm+=d;if(cm>11){cm=0;cy++}if(cm<0){cm=11;cy--}selDay=null;saveView();ra()}
+window.goThisMonth=function(){ numForce=true; const t=new Date(); cy=t.getFullYear(); cm=t.getMonth(); selDay=t.getDate(); saveView(); ra(); };   // 今月に戻って今日を選択
 window.todayQuick=function(){ const t=new Date(); cy=t.getFullYear(); cm=t.getMonth(); selDay=t.getDate(); saveView(); ra(); oDayTeam(t.getDate()); };
 // 下部ボタンバー：対象日＝選択日、無ければ本日（必要なら本日の月へ移動）
 function qTargetDay(){ if(selDay) return {y:cy,mo:cm,day:selDay,jump:false}; const t=new Date(); return {y:t.getFullYear(),mo:t.getMonth(),day:t.getDate(),jump:true}; }
@@ -2253,7 +2433,6 @@ window.oDayM=function(mid,day){
 // 入力履歴から台名の候補リストを生成（チーム全員・全期間の重複なし、よく使う順）
 function machineList(){
   const cnt={};
-  for(const k in D){ for(const e of (D[k]||[])){ const m=(e.machine||'').trim(); if(m) cnt[m]=(cnt[m]||0)+1; } }
   for(const k in ML){ for(const l of (ML[k]||[])){ const m=(l.machine||'').trim(); if(m) cnt[m]=(cnt[m]||0)+1; } }
   return Object.keys(cnt).sort((a,b)=> cnt[b]-cnt[a] || a.localeCompare(b));
 }
@@ -2287,9 +2466,12 @@ window.oForm=function(mid,day,editId,ro){
           </div>
         </div>
         <div class="fr" id="evRow" style="${pt==='ev'?'':'display:none'}"><label class="fl">期待値（円）— 任意</label><input id="fev" type="number" placeholder="未入力でもOK" inputmode="numeric" value="${e.ev||''}"></div>
-        <div class="fr"><label class="fl">店舗</label><select id="fst" onchange="onFstChange();mlCalc()">${sOpts}<option value="__add">＋ 新しい店舗を追加</option></select></div>
-        <div class="fr"><label class="fl">機種名</label><input id="fmc" type="text" list="mclist" autocomplete="off" placeholder="ゴーゴージャグラー3" value="${e.machine?mlEsc(e.machine):''}" oninput="clearMcErr()">
-          <datalist id="mclist">${machineList().map(m=>`<option value="${m.replace(/"/g,'&quot;')}"></option>`).join('')}</datalist>
+        <div class="fr"><label class="fl">店舗</label><select id="fst" onchange="onFstChange();const _u=document.getElementById('fpu');if(_u){const _i=parseInt(this.value);_u.value=(S[isNaN(_i)?0:_i]||{}).mp||46;puSync();}mlCalc()">${sOpts}<option value="__add">＋ 新しい店舗を追加</option></select></div>
+        <div class="fr"><label class="fl">機種名</label><select id="fmc" onchange="onFmcChange();clearMcErr()">${mcOpts(e.machine)}</select>
+          <div id="fmcAdd" style="display:none;margin-top:7px"><div style="display:flex;gap:8px">
+            <input id="fmcNew" type="text" placeholder="新しい機種名" autocomplete="off" style="flex:1;min-width:0">
+            <button class="btn p" type="button" style="flex:none;padding:8px 16px;width:auto" onclick="addMcFromForm()">追加</button>
+          </div></div>
           <div id="fmcErr" class="ferr">機種名を入力してください</div>
         </div>
         <div class="fr"><label class="fl">台番 — 任意</label><input id="fno" type="text" inputmode="numeric" placeholder="例 123" value="${e.machineNo?mlEsc(e.machineNo):''}"></div>
@@ -2307,10 +2489,21 @@ window.oForm=function(mid,day,editId,ro){
       <div class="sechd"><span class="st play">遊戯中</span><span id="secPlHd"></span></div>
       <div class="secview" id="viewPl"></div>
       <div class="secedit" id="editPl">
+        <div class="plgrp-lbl">現金</div>
         <div class="fr"><label class="fl">現金投資（PUSH）</label>
           <div class="pstep"><input id="fpc" type="number" inputmode="numeric" placeholder="0" value="${e.pushC??(e.invest?e.invest/1000:'')}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fpc',-1)">−</button><button class="pbtn-push" onclick="pushStep('fpc',1)">PUSH</button></div>
           <div class="psub" id="fpcSub"></div>
         </div>
+        <div class="plgrp-lbl sep">貯メダル・持ちメダル</div>
+        <div class="fr purow"><label class="fl" style="margin:0">1PUSHの枚数</label>
+          <select id="fpuSel" class="pusel" onchange="puSelChange(this.value)">
+            <option value="46">46枚</option>
+            <option value="50">50枚</option>
+            <option value="custom">カスタム</option>
+          </select>
+          <input id="fpu" type="number" inputmode="numeric" style="display:none" placeholder="枚数" value="${e.pushUnit!=null?e.pushUnit:((S[e.storeIdx||0]||{}).mp||46)}" oninput="mlCalc()">
+        </div>
+        <div class="psub" style="margin:-2px 0 8px">店により異なる場合は変更（現金は貸出レートで換算）</div>
         <div class="fr"><label class="fl">貯メダル投資（PUSH）</label>
           <div class="pstep"><input id="fps" type="number" inputmode="numeric" placeholder="0" value="${e.pushS??''}" oninput="mlCalc()"><span class="psp"></span><button class="pbtn-minus" onclick="pushStep('fps',-1)">−</button><button class="pbtn-push" onclick="pushStep('fps',1)">PUSH</button></div>
           <div class="psub" id="fpsSub"></div>
@@ -2376,18 +2569,30 @@ window.oForm=function(mid,day,editId,ro){
   document.getElementById('mfoot').innerHTML=mlReadOnly?`<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`:`<button class="btn" onclick="cM()">キャンセル</button><button class="btn play" onclick="svML(${mid},${day},'${editId||''}','play')">遊戯中</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}','done')">保存</button>`;
   oM();
 
-  applyMLLocks(); snapSec('start'); snapSec('end'); mlCalc();
+  applyMLLocks(); puSync(); snapSec('start'); snapSec('end'); mlCalc();
 };
 function curForm(){
   const g=id=>document.getElementById(id); let si=parseInt(g('fst')?.value); if(isNaN(si)||si<0||si>=S.length) si=0;
   const jug=!!document.getElementById('jgSw')?.classList.contains('on');
-  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', pushC:g('fpc')?.value, pushS:g('fps')?.value, pushK:g('fpk')?.value, gainMedal:g('fga')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
+  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', pushC:g('fpc')?.value, pushS:g('fps')?.value, pushK:g('fpk')?.value, pushUnit:g('fpu')?.value, gainMedal:g('fga')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
     jug, jSpinS:g('jss')?.value, jBigS:g('jbs')?.value, jRegS:g('jrs')?.value,
     jSpinE:g('jse')?.value, jBigE:g('jbe')?.value, jRegE:g('jre')?.value,
     jGrape:g('jgr')?.value, jCherry:g('jch')?.value,
     jRegSolo:g('jrsolo')?.value, jRegChe:g('jrche')?.value, jRegUnk:g('jrunk')?.value,
     jBigSolo:g('jbsolo')?.value, jBigChe:g('jbche')?.value, jBigUnk:g('jbunk')?.value};
 }
+window.puSelChange=function(v){
+  const el=document.getElementById('fpu'); if(!el) return;
+  if(v==='custom'){ el.style.display=''; try{el.focus();el.select&&el.select();}catch(_){} }
+  else { el.value=v; el.style.display='none'; }
+  mlCalc();
+};
+window.puSync=function(){   // fpuの値からプルダウンと入力欄の表示を同期
+  const el=document.getElementById('fpu'), sel=document.getElementById('fpuSel'); if(!el||!sel) return;
+  const v=String(parseFloat(el.value)||'');
+  if(v==='46'||v==='50'){ sel.value=v; el.style.display='none'; }
+  else { sel.value='custom'; el.style.display=''; }
+};
 window.pushStep=function(id,d){
   const el=document.getElementById(id); if(!el) return;
   const cur=parseInt(el.value)||0; el.value=Math.max(0,cur+d); mlCalc();
@@ -2406,8 +2611,9 @@ function applyMLLocks(){
   // 開始時
   document.getElementById('viewSt').innerHTML=vrow('稼働タイプ',f.playType==='ev'?'<span class="ebadge ev" style="font-size:10px;padding:2px 8px">期待値稼働</span>':'<span class="ebadge st" style="font-size:10px;padding:2px 8px">設定狙い</span>')+(f.playType==='ev'?vrow('期待値',f.ev?parseFloat(f.ev).toLocaleString()+'円':'<span class="vmut">未入力</span>'):'')+vrow('店舗',S[f.storeIdx]?.name||'—')+vrow('機種名',f.machine?mlEsc(f.machine):'<span class="vmut">未入力</span>')+vrow('台番',f.machineNo?mlEsc(f.machineNo):'<span class="vmut">未入力</span>')+(f.jug?vrow('ジャグラーモード','<span class="ebadge st" style="font-size:10px;padding:2px 8px">ON</span>')+vrow('前任 回転/BIG/REG',`${vnum(f.jSpinS)} / ${vnum(f.jBigS)} / ${vnum(f.jRegS)}`):'');
   const _mp=(S[f.storeIdx]||{}).mp||46;
+  const _pu=parseFloat(f.pushUnit)||_mp;
   const pushV=(v,extra)=>{ const n=parseFloat(v); if(v===''||v==null||isNaN(n)) return '<span class="vmut">未入力</span>'; return `${n}PUSH <span class="vmut">（${extra(n)}）</span>`; };
-  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${(n*_mp).toLocaleString()}枚`))+vrow('持ちメダル投資',pushV(f.pushK,n=>`${(n*_mp).toLocaleString()}枚`));
+  document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',pushV(f.pushS,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+vrow('持ちメダル投資',pushV(f.pushK,n=>`${Math.round(n*_pu).toLocaleString()}枚`))+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メ・持ちメ用）</div>`;
   document.getElementById('viewEn').innerHTML=vrow('獲得枚数',vnum(f.gainMedal,'枚'))+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h':'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
   const memoTxt=f.memo?mlEsc(f.memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>';
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
@@ -2462,13 +2668,13 @@ window.memoDone=function(){
   closeMemo(); applyMLLocks();
 };
 let mlSnap={};
-function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo']:sec==='play'?['pushC','pushS','pushK']:sec==='end'?['gainMedal','hours']:['memo']; }
+function secFields(sec){ return sec==='start'?['playType','ev','storeIdx','machine','machineNo']:sec==='play'?['pushC','pushS','pushK','pushUnit']:sec==='end'?['gainMedal','hours']:['memo']; }
 function snapSec(sec){ const f=curForm(); const o={}; secFields(sec).forEach(k=>o[k]=f[k]); mlSnap[sec]=o; }
 function restoreSec(sec){
   const o=mlSnap[sec]; if(!o) return;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v==null?'':v);};
   if(sec==='start'){ if(o.playType) sPTm(o.playType); set('fev',o.ev); const fst=document.getElementById('fst'); if(fst&&o.storeIdx!=null) fst.value=String(o.storeIdx); set('fmc',o.machine); set('fno',o.machineNo); }
-  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpk',o.pushK); }
+  else if(sec==='play'){ set('fpc',o.pushC); set('fps',o.pushS); set('fpk',o.pushK); set('fpu',o.pushUnit); puSync(); }
   else if(sec==='end'){ set('fga',o.gainMedal); set('fhr',o.hours); }
   else { set('fmm',o.memo); }
 }
@@ -2484,11 +2690,11 @@ window.sPTm=function(t){ document.getElementById('rs').className='ro'+(t==='sett
 window.mlCalc=function(){
   const f=curForm();
   // 遊戯中のPUSHサブ表示（現金＝円と枚、貯メ/持ちメ＝枚）
-  { const _mp=(S[f.storeIdx]||{}).mp||46; const pn=v=>parseFloat(v)||0;
+  { const _mp=(S[f.storeIdx]||{}).mp||46; const pn=v=>parseFloat(v)||0; const _pu=pn(f.pushUnit)||_mp;
     const el=(id,t)=>{const e2=document.getElementById(id); if(e2)e2.textContent=t;};
     el('fpcSub', pn(f.pushC)>0?`= ${(pn(f.pushC)*1000).toLocaleString()}円 ・ ${Math.round(pn(f.pushC)*_mp).toLocaleString()}枚`:'');
-    el('fpsSub', pn(f.pushS)>0?`= ${Math.round(pn(f.pushS)*_mp).toLocaleString()}枚`:'');
-    el('fpkSub', pn(f.pushK)>0?`= ${Math.round(pn(f.pushK)*_mp).toLocaleString()}枚`:''); } const v=mlVals(f);
+    el('fpsSub', pn(f.pushS)>0?`= ${Math.round(pn(f.pushS)*_pu).toLocaleString()}枚`:'');
+    el('fpkSub', pn(f.pushK)>0?`= ${Math.round(pn(f.pushK)*_pu).toLocaleString()}枚`:''); } const v=mlVals(f);
   const dv=document.getElementById('cDaiY'), tri=document.getElementById('cDaiT'), pill=document.getElementById('cDai');
   const sign=v.daiYen===null?0:(v.daiYen>0?1:v.daiYen<0?-1:0);
   const cls=sign>0?'pos':sign<0?'neg':'';
@@ -2566,10 +2772,11 @@ window.svML=function(mid,day,editId,mode){
     machineNo:document.getElementById('fno')?.value.trim()||'',
     playing:(mode==='play'),                                       // 遊戯中ボタンで保存＝確定するまで遊戯中扱い
     pushC:gv('fpc')||0, pushS:gv('fps')||0, pushK:gv('fpk')||0,
+    pushUnit:gv('fpu')||((S[storeIdx]||{}).mp||46),                // 貯メ・持ちメの1PUSH枚数（店により異なる）
     gainMedal:(document.getElementById('fga')?.value!==''?(gv('fga')||0):null),
     invest:(gv('fpc')||0)*1000,                                   // 集計用：現金投資（円）＝PUSH×1000
-    usedStored:Math.round((gv('fps')||0)*((S[storeIdx]||{}).mp||46)),   // 集計用：貯メダル投資（枚）
-    usedCarry:Math.round((gv('fpk')||0)*((S[storeIdx]||{}).mp||46)),    // 集計用：持ちメダル投資（枚）
+    usedStored:Math.round((gv('fps')||0)*(gv('fpu')||((S[storeIdx]||{}).mp||46))),   // 集計用：貯メダル投資（枚）
+    usedCarry:Math.round((gv('fpk')||0)*(gv('fpu')||((S[storeIdx]||{}).mp||46))),    // 集計用：持ちメダル投資（枚）
     hours:gv('fhr')||0,
     memo:document.getElementById('fmm')?.value.trim()||'',
     jug:!!document.getElementById('jgSw')?.classList.contains('on'),
@@ -2582,6 +2789,30 @@ window.svML=function(mid,day,editId,mode){
   saveMLog(mid,log); cM();
 };
 window.clearMcErr=function(){ const fmc=document.getElementById('fmc'); if(fmc)fmc.classList.remove('invalid'); const err=document.getElementById('fmcErr'); if(err)err.style.display='none'; };
+// 機種プルダウンの選択肢（マスタ∪記録由来。currentが未登録でも選べるよう補完）
+function mcNames(){ const set=new Set(MC); machineList().forEach(m=>set.add(m)); return [...set]; }
+function mcOpts(current){
+  const names=mcNames(); if(current&&!names.includes(current)) names.unshift(current);
+  const esc=v=>String(v).replace(/"/g,'&quot;');
+  return `<option value=""${!current?' selected':''} disabled hidden>機種を選択</option>`
+    + names.map(m=>`<option value="${esc(m)}"${m===current?' selected':''}>${mlEsc(m)}</option>`).join('')
+    + `<option value="__add">＋ 新しい機種を追加</option>`;
+}
+window.onFmcChange=function(){
+  const sel=document.getElementById('fmc'), box=document.getElementById('fmcAdd'); if(!sel||!box) return;
+  if(sel.value==='__add'){ box.style.display=''; setTimeout(()=>{ try{document.getElementById('fmcNew').focus();}catch(_){}} ,30); }
+  else box.style.display='none';
+};
+window.addMcFromForm=async function(){
+  const sel=document.getElementById('fmc'), box=document.getElementById('fmcAdd'), inp=document.getElementById('fmcNew');
+  const name=(inp?.value||'').trim();
+  if(!name){ if(inp){ inp.classList.add('invalid'); setTimeout(()=>inp.classList.remove('invalid'),900); } return; }
+  const names=mcNames();
+  if(!names.includes(name)){ MC.push(name); try{ await saveConfig(); }catch(_){} }   // 既存と同名なら選ぶだけ（表記ゆれ防止）
+  sel.innerHTML=mcOpts(name);
+  if(inp) inp.value=''; if(box) box.style.display='none';
+  clearMcErr();
+};
 window.onFstChange=async function(){
   const sel=document.getElementById('fst'); if(!sel||sel.value!=='__add') return;
   const name=(prompt('新しい店舗名を入力してください')||'').trim();
@@ -2630,33 +2861,101 @@ window.oSet=function(){
         </div>
         ${S.length>1?`<button class="linkbtn danger" style="margin-top:4px" onclick="rmSt(${i})">削除</button>`:''}
       </div>`).join('') + `<button class="btn" style="width:100%;margin-top:3px" onclick="addSt()">＋ 店舗を追加</button>`
-    : S.map(s=>`<div class="prow"><div><div style="font-size:14px;font-weight:500">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">貸しメダル 1000円→${s.mp}枚 ・ 交換率 ${s.rate}枚→100円</div></div></div>`).join('');
-  const storeSection = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="stlabel">店舗・レート</div><button class="tlink" onclick="toggleStEdit()">${stEdit?'完了':'編集'}</button></div>${storeView}`;
+    : (()=>{
+        const shown=setStExpand?S:S.slice(0,SET_SHOW_MAX);
+        const rows=shown.map((s,i)=>`<div class="prow${(setStAnim&&i>=SET_SHOW_MAX)?' mrow-in':''}"${(setStAnim&&i>=SET_SHOW_MAX)?` style="animation-delay:${((i-SET_SHOW_MAX)*0.045).toFixed(3)}s"`:''}><div><div style="font-size:14px;font-weight:500;word-break:break-word">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">貸しメダル 1000円→${s.mp}枚 ・ 交換率 ${s.rate}枚→100円</div></div></div>`).join('');
+        const more=S.length>SET_SHOW_MAX?`<button class="medal-more" onclick="setStToggle()">${setStExpand?'たたむ ▴':`他${S.length-SET_SHOW_MAX}店舗を表示 ▾`}</button>`:'';
+        return rows+more;
+      })();
+  const storeSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">店舗・レート</div><button class="tlink" onclick="toggleStEdit()">${stEdit?'完了':'編集'}</button></div>${storeView}</div>`;
+  // 機種管理（店舗と同じ編集方式）
+  if(!mcEdit) MCV=mcNames();   // マスタ∪記録にある機種（常に記録とリンク）。編集中は固定
+  const mcView = mcEdit
+    ? `<div style="font-size:11px;color:var(--text-muted);margin:0 0 8px;line-height:1.6">記録画面のプルダウンに出る機種を管理します。</div>`
+      + MCV.map((m,i)=>`<div style="background:var(--surface-1);border-radius:var(--radius);padding:9px;margin-bottom:7px;display:flex;gap:8px;align-items:center">
+        <input id="mcn${i}" value="${String(m).replace(/"/g,'&quot;')}" placeholder="例：マイジャグラーV" style="${inpStyle};flex:1;min-width:0">
+        <button class="linkbtn danger" style="flex:none" onclick="rmMc(${i})">削除</button>
+      </div>`).join('') + `<button class="btn" style="width:100%;margin-top:3px" onclick="addMcRow()">＋ 機種を追加</button>
+      <button class="btn p" style="width:100%;margin-top:8px" onclick="svMc()">保存</button>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.7">同じ名前は1つにまとまります（空欄はリストから外れます）</div>`
+    : (MCV.length? (()=>{
+        const shown=setMcExpand?MCV:MCV.slice(0,SET_SHOW_MAX);
+        const rows=shown.map((m,i)=>`<div class="prow${(setMcAnim&&i>=SET_SHOW_MAX)?' mrow-in':''}"${(setMcAnim&&i>=SET_SHOW_MAX)?` style="animation-delay:${((i-SET_SHOW_MAX)*0.045).toFixed(3)}s"`:''}><div style="font-size:14px;font-weight:500;word-break:break-word;line-height:1.5">${mlEsc(m)}</div></div>`).join('');
+        const more=MCV.length>SET_SHOW_MAX?`<button class="medal-more" onclick="setMcToggle()">${setMcExpand?'たたむ ▴':`他${MCV.length-SET_SHOW_MAX}機種を表示 ▾`}</button>`:'';
+        return rows+more;
+      })()
+                : `<div style="font-size:12px;color:var(--text-muted);padding:6px 2px">まだ機種がありません。記録画面の「＋ 新しい機種を追加」か、ここの編集から追加できます。</div>`);
+  const mcSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">機種リスト</div><button class="tlink" onclick="toggleMcEdit()">${mcEdit?'キャンセル':'編集'}</button></div>${mcView}</div>`;
   // 初期現金（リーダーのみ・専用の編集ボタン）
-  const cashSection = `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px"><div class="stlabel">チームの初期現金</div>${leader?`<button class="tlink" onclick="toggleCashEdit()">${cashEdit?'キャンセル':'編集'}</button>`:''}</div>`+
+  const cashSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">チームの初期現金</div>${leader?`<button class="tlink" onclick="toggleCashEdit()">${cashEdit?'キャンセル':'編集'}</button>`:''}</div>`+
     (cashEdit&&leader
       ? `<div class="fr"><input id="set-cash" type="number" inputmode="numeric" value="${initCash}"><div style="font-size:10px;color:var(--text-muted);margin:3px 0 7px">総資産の起点（収支には含めません）</div><button class="btn p" style="width:100%" onclick="svCash()">初期現金を保存</button></div>`
-      : `<div class="prow"><div><div style="font-size:15px;font-weight:600">${initCash.toLocaleString()} 円</div><div style="font-size:10px;color:var(--text-muted)">総資産の起点（収支には含めない）${leader?'':' ・ 変更はリーダーのみ'}</div></div></div>`);
+      : `<div class="prow"><div><div style="font-size:15px;font-weight:600">${initCash.toLocaleString()} 円</div><div style="font-size:10px;color:var(--text-muted)">総資産の起点（収支には含めない）${leader?'':' ・ 変更はリーダーのみ'}</div></div></div>`)+`</div>`;
   // メンバー管理（リーダーのみ）
   let memberSection='';
   if(leader){
-    memberSection = `<div class="stlabel" style="margin-top:14px">メンバー管理（リーダー）</div>`+
+    memberSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">メンバー管理（リーダー）</div></div>`+
       MEMBERS.map(m=>`<div class="prow"><div style="font-size:14px;display:flex;align-items:center">${avatarMini(uidToMid[m.uid])}${m.name}${m.uid===teamOwner?'<span class="lbadge">リーダー</span>':''}</div><div style="white-space:nowrap">`+
-        (m.uid!==myUid?`<button class="tlink" onclick="transferLeader('${m.uid}','${m.name}')">リーダーに変更</button><button class="linkbtn danger" style="margin-left:4px" onclick="kickMember('${m.uid}','${m.name}')">追放</button>`:'<span style="font-size:10px;color:var(--text-muted)">あなた</span>')+`</div></div>`).join('');
+        (m.uid!==myUid?`<button class="tlink" onclick="transferLeader('${m.uid}','${m.name}')">リーダーに変更</button><button class="linkbtn danger" style="margin-left:4px" onclick="kickMember('${m.uid}','${m.name}')">追放</button>`:'<span style="font-size:10px;color:var(--text-muted)">あなた</span>')+`</div></div>`).join('')+`</div>`;
   }
   // 招待コード
-  const codeSection = `<div class="stlabel" style="margin-top:14px">招待コード</div>
+  const codeSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">招待コード</div></div>
     <div class="prow"><div style="font-size:16px;font-weight:600;letter-spacing:2px">${inviteCode||'—'}</div><button class="linkbtn" onclick="copyCode()">コピー</button></div>
     <div style="font-size:10px;color:var(--text-muted);margin:2px 0 6px">このコードを伝えると、相手はログイン後にチームへ参加できます</div>
-    <button class="imp-btn" onclick="importLocal()">この端末の旧データ(localStorage)を取り込む</button>`;
-  const dangerSection = leader ? `<div class="stlabel" style="margin-top:18px">データ管理（リーダー）</div>
+    <button class="imp-btn" onclick="importLocal()">この端末の旧データ(localStorage)を取り込む</button></div>`;
+  const dangerSection = leader ? `<div class="setcard danger"><div class="setcard-hd"><div class="stlabel">データ管理（リーダー）</div></div>
     <div style="font-size:10px;color:var(--text-muted);margin:0 0 8px;line-height:1.6">テストが終わったら、ここで記録を消してまっさらな状態から始められます。チーム・メンバー・店舗・初期現金・初期メダルは残ります。</div>
-    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・給与）</button>` : '';
-  document.getElementById('mbody').innerHTML = storeSection + cashSection + memberSection + codeSection + dangerSection;
+    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・給与）</button></div>` : '';
+  document.getElementById('mbody').innerHTML = storeSection + mcSection + cashSection + memberSection + codeSection + dangerSection;
   document.getElementById('mfoot').innerHTML = stEdit
     ? `<button class="btn" onclick="cancelSt()">キャンセル</button><button class="btn p" onclick="svSet()">保存</button>`
     : `<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`;
+  setStAnim=false; setMcAnim=false;   // 展開アニメは一度だけ
   oM();
+};
+let mcEdit=false;   // 設定（機種リスト）を編集中か
+let MCV=[];         // 設定画面用の統合機種リスト（マスタ∪記録由来）
+let setStExpand=false, setMcExpand=false;   // 設定のリスト折りたたみ
+let setStAnim=false, setMcAnim=false;       // 展開時スライドイン（一度だけ）
+const SET_SHOW_MAX=3;
+window.setStToggle=function(){ setStExpand=!setStExpand; setStAnim=setStExpand; oSet(); };
+window.setMcToggle=function(){ setMcExpand=!setMcExpand; setMcAnim=setMcExpand; oSet(); };
+window.toggleMcEdit=function(){ mcEdit=!mcEdit; if(mcEdit) MCV=mcNames(); oSet(); };
+window.rmMc=function(i){
+  const name=MCV[i];
+  if(!name){ MCV.splice(i,1); MC=MC.filter(n=>n!==name); oSet(); return; }   // 空行は即削除
+  const cnt=allMLogs().filter(l=>l.machine===name).length;
+  confirmBox(`機種「${name}」を削除しますか？${cnt?`\nこの機種の保存済み記録 ${cnt}件 もあわせて削除されます。`:''}\nこの操作は元に戻せません。`, async ()=>{
+    MC=MC.filter(n=>n!==name); await saveConfig();
+    if(cnt){ const ids=allMLogs().filter(l=>l.machine===name).map(l=>l.id); for(const id of ids) await deleteMLog(id); }
+    oSet(); ra();
+  });
+};
+window.addMcRow=function(){
+  // 入力中の値を保持したまま行を追加
+  for(let i=0;i<MCV.length;i++){ const el=document.getElementById('mcn'+i); if(el) MCV[i]=el.value; }
+  MCV.push(''); oSet();
+  setTimeout(()=>{ try{ document.getElementById('mcn'+(MCV.length-1)).focus(); }catch(_){} }, 30);
+};
+window.svMc=async function(){
+  const ren={};   // 旧名 → 新名
+  const names=[]; const seen=new Set();
+  for(let i=0;i<MCV.length;i++){
+    const el=document.getElementById('mcn'+i); if(!el) continue;
+    const v=(el.value||'').trim();
+    const old=MCV[i];
+    if(v&&!seen.has(v)){ names.push(v); seen.add(v); if(old&&v!==old) ren[old]=v; }
+  }
+  MC=names; await saveConfig();
+  if(Object.keys(ren).length){
+    if(typeof window.renameMachineInLogs==='function'){
+      const r=await window.renameMachineInLogs(ren);
+      if(r.ng>0) alert(`機種名を変更し、記録${r.ok}件に反映しました。\n${r.ng}件は反映できませんでした。`);
+    } else {
+      for(const k in ML) (ML[k]||[]).forEach(l=>{ if(ren[l.machine]) l.machine=ren[l.machine]; });   // プレビュー用
+    }
+  }
+  mcEdit=false; oSet(); ra();
 };
 window.resetRecords=async function(){
   if(!isLeader()){ alert('リセットはリーダーのみ実行できます'); return; }
