@@ -2717,7 +2717,7 @@ window.oForm=function(mid,day,editId,ro){
   oM(); mlFormOpen=true;   // フォーム表示中は閉じる操作に確認を挟む（変更がある時だけ）
   const _mx=document.getElementById('mclose'); if(_mx)_mx.style.display='none';   // 台記録は×なし（キャンセル/保存で閉じる）
 
-  applyMLLocks(); puSync(); psInit(e); psView('s'); psView('k'); psViewCash(); psArrowVals(); renderHoList(); snapSec('start'); snapSec('end'); mlCalc();
+  psInit(e); applyMLLocks(); puSync(); psView('s'); psView('k'); psViewCash(); psArrowVals(); renderHoList(); snapSec('start'); snapSec('end'); mlCalc();   // psInitはビュー描画(applyMLLocks)より先に
   mlFormSnap=JSON.stringify(curForm());   // 開いた時点の状態（閉じる時の変更検知用）
 };
 function curForm(){
