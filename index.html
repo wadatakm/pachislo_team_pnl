@@ -44,10 +44,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   --radius: 10px;
 }
 
-body { color: var(--text-primary); background: #000;
+body { color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'SF Pro Display', sans-serif; min-height: 100vh; }
 
-html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavior:none}
+html,body{background:#000;height:100%;overflow:hidden;overscroll-behavior:none}
 .app{width:100%;max-width:480px;margin:0 auto;background:#000;height:100dvh;display:flex;flex-direction:column}
 .view,.viewscroll{width:100%}
 .scrollarea{max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
@@ -149,7 +149,13 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .medal-total-lbl{font-size:13px;font-weight:700;color:var(--text-primary)}
 .medal-total-val{font-size:18px;font-weight:700;color:var(--text-success);font-variant-numeric:tabular-nums}
 .medal-total-unit{font-size:11px;font-weight:500;color:var(--text-secondary);margin-left:2px}
+#toTop,#toTopM,#toTopA{position:fixed;left:50%;margin-left:-18px;top:68px;z-index:55;width:36px;height:36px;border-radius:50%;background:rgba(40,40,44,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:0.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .2s ease,transform .2s ease}
+#toTop.show,#toTopM.show,#toTopA.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+#toTop:active,#toTopM:active,#toTopA:active{background:rgba(60,60,64,.55)}
+#toTopM{position:absolute;top:64px;z-index:30}
+#msheet{position:relative}
 .medal-fixed{position:sticky;top:0;z-index:25;background:#000;box-shadow:0 6px 12px rgba(0,0,0,.5)}
+.ctlfix{position:sticky;top:0;z-index:25;background:#000;box-shadow:0 6px 12px rgba(0,0,0,.5);max-height:70dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .mvctl{display:inline-flex;background:var(--surface-1);border:0.5px solid var(--border);border-radius:9px;padding:2px;gap:2px}
 .mvseg{background:none;border:none;color:var(--text-muted);font-size:11px;font-weight:600;border-radius:7px;padding:5px 13px;cursor:pointer;transition:background .15s,color .15s}
 .mvseg.on{background:#2f2f33;color:var(--text-primary)}
@@ -164,8 +170,7 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .jtbl{display:grid;gap:0;border:0.5px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:7px}
 .jth{background:rgba(255,255,255,.05);font-size:10px;color:var(--text-secondary);font-weight:600;text-align:center;padding:6px 2px;border-bottom:0.5px solid var(--border)}
 .jtd{font-size:13px;color:var(--text-primary);font-weight:600;text-align:center;padding:8px 2px;font-variant-numeric:tabular-nums}
-.wlrow.playing{border-left:3px solid #ffb020}
-.mevc.playing{border-left:3px solid #ffb020}
+.wlrow.playing,.mevc.playing{border-left:3px solid #ffb020}
 .setcard{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:12px}
 .setcard-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
 .setcard .stlabel{margin:0}
@@ -194,8 +199,7 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 .pbtn-push.ps{color:#d99a5e;border-color:rgba(255,122,0,.4);background:linear-gradient(180deg,rgba(255,122,0,.16),rgba(255,122,0,.06))}
 .pbtn-push.pk{color:#93aede;border-color:rgba(126,166,255,.4);background:linear-gradient(180deg,rgba(126,166,255,.15),rgba(126,166,255,.05))}
 .pbtn-minus{width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#26262a,#1a1a1d);border:1px solid #3a3a3f;color:#c7c7cc;border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.35)}
-.pbtn-minus:active{transform:translateY(1px);background:#151517;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
-.pbtn-minus:active{background:#141416}
+.pbtn-minus:active{transform:translateY(1px);background:#141416;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
 .psub{font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px}
 .fmcwrap{position:relative}
 #fmcHits,#fstHits{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:80;background:#1c1c1e;border:0.5px solid var(--border-strong);border-radius:12px;max-height:252px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,.55);padding:3px}
@@ -739,6 +743,8 @@ body.modal-open #wrap{overflow:hidden!important}
   <div style="position:relative;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch" id="wrap">
     <div id="views"></div>
     <div id="fab-host"></div>
+    <button id="toTopA" aria-label="リストの先頭に戻る" onclick="scrollTopArea()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+    <button id="toTop" aria-label="トップに戻る" onclick="scrollTopWrap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
     <div class="modal-bg" id="memobg" style="z-index:120;align-items:center;padding:0 14px">
       <div id="memosheet" style="width:100%;max-width:460px;height:78vh;background:#0e0e10;border:0.5px solid var(--border);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;animation:memoFade .18s ease-out">
         <div class="mh" style="flex-shrink:0"><span class="mt" id="memottl">メモ</span><span id="memohd"></span></div>
@@ -748,7 +754,8 @@ body.modal-open #wrap{overflow:hidden!important}
     <div class="modal-bg" id="mbg">
       <div class="modal" id="msheet">
         <div id="mdrag"><div class="grab"></div>
-        <div class="mh"><span class="mt" id="mtitle"></span><button class="mx" id="mclose">×</button></div></div>
+        <div class="mh"><span class="mt" id="mtitle"></span></div></div>
+        <button id="toTopM" aria-label="トップに戻る" onclick="scrollTopModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
         <div class="ms" id="mbody"></div>
         <div class="mf" id="mfoot"></div>
       </div>
@@ -908,29 +915,6 @@ function mlVals(l){
   const evGap=(hasEnd&&l.playType==='ev'&&mlNum(l.ev)>0)?Math.round(daiYen-mlNum(l.ev)):null; // EV差＝実収支(円)−期待値（期待値稼働のみ）
   return {mp,rate,yen,yenLend,cashMedal,storedMedal,investMedal,given,received,daiReal,daiYen,hrs,hourly,evGap,hasEnd};
 }
-
-// 旧localStorage(pv9_)データをFirestoreへ一度だけ取り込むユーティリティ
-window.importLocal = async function(){
-  if(!confirm('この端末に残っている旧アプリ(localStorage)のデータをチームに取り込みます。よろしいですか？')) return;
-  try{
-    const oD=JSON.parse(localStorage.getItem('pv9_d')||'{}');
-    const oN=JSON.parse(localStorage.getItem('pv9_n')||'null');
-    const oS=JSON.parse(localStorage.getItem('pv9_s')||'null');
-    const oM=JSON.parse(localStorage.getItem('pv9_m')||'null');
-    let cnt=0;
-    for(const key in oD){
-      const [omid,y,mo]=key.split('_').map(Number);
-      const uid=MEMBERS[omid]?.uid; if(!uid) continue;
-      for(const e of (oD[key]||[])){
-        const id=e.id||`${omid}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-        await setDoc(doc(entriesCol,id),{...e,id,uid,y,mo}); cnt++;
-      }
-    }
-    if(oS) await setDoc(cfgDoc,{stores:oS});
-    if(oM)     await setDoc(medalDoc,{mi:oM});
-    alert(`取り込み完了：稼働${cnt}件を反映しました。`);
-  }catch(err){ alert('取り込み失敗：'+err.message); }
-};
 
 // ---- 稼働ドキュメントからD（mid_年_月→配列）を再構築 ----
 function rebuildD(){
@@ -1231,10 +1215,10 @@ function calMlRows(logs){
   if(!logs.length) return '<div style="padding:18px 0;text-align:center;color:var(--text-muted);font-size:12px">まだ記録がありません</div>';
   const dnum=l=>(l.y||0)*10000+(l.mo||0)*100+(l.day||0);
   const srt=(a,b)=>dnum(b)-dnum(a)||String(b.id||'').localeCompare(String(a.id||''));
-  const p=logs.filter(l=>!mlVals(l).hasEnd).sort(srt);   // 遊戯中
+  const p=logs.filter(l=>!mlVals(l).hasEnd).sort(srt);   // 遊技中
   const d=logs.filter(l=>mlVals(l).hasEnd).sort(srt);    // 確定済み
   if(!p.length) return `<div class="wllist">${d.map(wlRow).join('')}</div>`;
-  let h=`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊戯中</div><div class="wllist">${p.map(wlRow).join('')}</div>`;
+  let h=`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊技中</div><div class="wllist">${p.map(wlRow).join('')}</div>`;
   if(d.length) h+=`<div class="mev-seclbl">確定済み</div><div class="wllist">${d.map(wlRow).join('')}</div>`;
   return h;
 }
@@ -1530,7 +1514,7 @@ function rTeam(container){
         <div style="grid-column:3 / 5;grid-row:2;align-self:start">${balBlockHtml()}</div>
       </div>
     </div>
-    <div class="tmrow">${sums.map((s,i)=>`<div class="tm"><div class="tmn">${avatarMini(i)}${N[i]}</div><div class="tmv ${c(s.real)}"><span data-cnum="tm${i}_real" data-v="${s.real}" data-fmt="f">${f(s.real)}</span></div>${s.hourly!==null?`<div style="font-size:9px;color:var(--text-muted);margin-top:1px"><span data-cnum="tm${i}_hr" data-v="${s.hourly}" data-fmt="fh">${fh(s.hourly)}円</span>/h</div>`:''}</div>`).join('')}</div>
+    <div class="tmrow">${sums.map((s,i)=>`<div class="tm"><div class="tmn">${avatarMini(i)}${N[i]}</div><div class="tmv ${c(s.real)}"><span data-cnum="tm${i}_real" data-v="${s.real}" data-fmt="f">${f(s.real)}</span></div><div style="font-size:9px;color:var(--text-muted);margin-top:1px;min-height:12px">${s.hourly!==null?`<span data-cnum="tm${i}_hr" data-v="${s.hourly}" data-fmt="fh">${fh(s.hourly)}円</span>/h`:''}</div></div>`).join('')}</div>
     <div class="cal">${(()=>{
       const out=['日','月','火','水','木','金','土'].map((d,i)=>`<div class="cdow${i===0?' s':i===6?' sa':''}">${d}</div>`);
       for(let b=0;b<first;b++) out.push('<div class="cc emp"></div>');
@@ -1717,6 +1701,30 @@ function anaCls(v){ if(v==null) return 'zero'; if(anaMetric==='hours'||anaMetric
 const ANA_METRICS=[['real','実収支'],['hourly','時給'],['evgap','EV差'],['hours','稼働'],['count','台数']];
 const ANA_BREAKS=[['machine','機種別'],['store','店別'],['member','メンバー別'],['machineNo','台番別']];
 function anaCands(){ const ml=allMLogs(); const mc=new Set(),no=new Set(); ml.forEach(l=>{ mc.add(l.machine||'(未入力)'); no.add(l.machineNo||'(未入力)'); }); return {machine:[...mc].sort(),machineNo:[...no].sort((a,b)=>(parseFloat(a)||0)-(parseFloat(b)||0))}; }
+// 連動フィルタ：対象kind以外の絞り込み＋期間を通過するログから候補を作る（選択中の値は0件でも残して解除可能にする）
+function facetLogs(t,k){
+  const fil=(t==='ana')?anaFil:wlFil;
+  const inP=(t==='ana')?anaInPeriod:(l)=>{const {from,to}=prRange('wl'); if(from||to){const d=wlLogDate(l); if(from&&d<from)return false; if(to&&d>to)return false;} return true;};
+  return allMLogs().filter(l=>{
+    if(!inP(l)) return false;
+    if(k!=='machine' && fil.machine.size && !fil.machine.has(l.machine||'(未入力)')) return false;
+    if(k!=='store' && fil.store.size && !fil.store.has(l.storeIdx||0)) return false;
+    if(k!=='member' && fil.member.size && !fil.member.has(l.mid)) return false;
+    if(k!=='machineNo' && fil.machineNo.size && !fil.machineNo.has(l.machineNo||'(未入力)')) return false;
+    if(t==='wl' && k!=='status' && fil.status && fil.status.size && !fil.status.has(mlVals(l).hasEnd?'done':'playing')) return false;
+    return true;
+  });
+}
+function facetOpts(t){
+  const fil=(t==='ana')?anaFil:wlFil;
+  const opts={};
+  { const set=new Set(); facetLogs(t,'machine').forEach(l=>set.add(l.machine||'(未入力)')); fil.machine.forEach(v=>set.add(v)); opts.machine=[...set].sort().map(m=>[m,m]); }
+  { const set=new Set(); facetLogs(t,'store').forEach(l=>set.add(l.storeIdx||0)); fil.store.forEach(v=>set.add(v)); opts.store=[...set].sort((a,b)=>a-b).map(i=>[i,S[i]?.name||'不明']); }
+  { const set=new Set(); facetLogs(t,'member').forEach(l=>set.add(l.mid)); fil.member.forEach(v=>set.add(v)); opts.member=[...set].sort((a,b)=>a-b).map(i=>[i,N[i]||'?']); }
+  { const set=new Set(); facetLogs(t,'machineNo').forEach(l=>set.add(l.machineNo||'(未入力)')); fil.machineNo.forEach(v=>set.add(v)); opts.machineNo=[...set].sort((a,b)=>(parseFloat(a)||0)-(parseFloat(b)||0)).map(no=>[no,no==='(未入力)'?'台番なし':'#'+no]); }
+  if(t==='wl'){ const set=new Set(); facetLogs(t,'status').forEach(l=>set.add(mlVals(l).hasEnd?'done':'playing')); wlFil.status.forEach(v=>set.add(v)); const lab={playing:'遊技中',done:'確定済み'}; opts.status=['playing','done'].filter(k2=>set.has(k2)).map(k2=>[k2,lab[k2]]); }
+  return opts;
+}
 function anaBreakdown(){
   const logs=anaLogs(); const groups={};
   logs.forEach(l=>{ let key,label,mid=null;
@@ -1772,7 +1780,7 @@ function anaTrend(){
   }
 }
 window.anaSetMetric=function(m){ anaMetric=m; ra(); };
-let anaGraphMode='bar';   // 分析グラフの表示：line/bar/cum
+let anaGraphMode='cum';   // 分析グラフの表示：cum/bar（折れ線は廃止）
 window.anaGraphSet=function(m){ anaGraphMode=m; ra(); };
 window.anaSetBreak=function(b){ anaBreak=b; ra(); };
 window.anaOpenFilter=function(k){ anaFilterOpen=(anaFilterOpen===k)?null:k; ra(); };
@@ -1781,8 +1789,7 @@ window.anaClear=function(kind){ anaFil[kind]=new Set(); ra(); };
 window.anaClearAll=function(){ anaFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set()}; anaFilterOpen=null; ra(); };
 
 function anaFilterBar(){
-  const cands=anaCands();
-  const opts={ machine:cands.machine.map(m=>[m,m]), store:S.map((s,i)=>[i,s.name]), member:N.map((n,i)=>[i,n]), machineNo:cands.machineNo.map(no=>[no, no==='(未入力)'?'台番なし':'#'+no]) };
+  const opts=facetOpts('ana');   // 連動フィルタ：期間＋他の絞り込みで0件になる選択肢は出さない
   const labels={machine:'機種',store:'店',member:'メンバー',machineNo:'台番'};
   const pills=['machine','store','member','machineNo'].map(k=>{
     const n=anaFil[k].size; const active=anaFilterOpen===k;
@@ -1807,11 +1814,13 @@ function rAnalysis(container){
   const trend=anaTrend();
 
   div.innerHTML=`
+    <div class="ctlfix">
     <div class="topbar"><span class="topbar-title">収支分析</span><span class="topbar-val ${anaCls(mainVal)}">${anaFmt(mainVal)}</span></div>
     ${prPeriodBar('ana')}
     ${anaFilterBar()}
     <div class="analbl">指標（見たい数字）</div>
     <div class="anaseg">${ANA_METRICS.map(([k,lab])=>`<button class="asg${anaMetric===k?' a':''}" onclick="anaSetMetric('${k}')">${lab}</button>`).join('')}</div>
+    </div>
     <div class="asec">
       <div class="acard">
         <div class="actitle">${metricLabel} — ${period}${(anaFil.machine.size||anaFil.store.size||anaFil.member.size||anaFil.machineNo.size)?'（絞り込みあり）':''}</div>
@@ -1828,9 +1837,8 @@ function rAnalysis(container){
       </div>
       ${trend?`<div class="acard"><div class="actitle">${metricLabel}の推移（${trend.unit}）</div>
         <div class="wlg-modes" style="margin:8px 0">
-          <button class="afpill${anaGraphMode==='line'?' on':''}" onclick="anaGraphSet('line')">折れ線</button>
-          <button class="afpill${anaGraphMode==='bar'?' on':''}" onclick="anaGraphSet('bar')">棒グラフ</button>
           <button class="afpill${anaGraphMode==='cum'?' on':''}" onclick="anaGraphSet('cum')">累計</button>
+          <button class="afpill${anaGraphMode==='bar'?' on':''}" onclick="anaGraphSet('bar')">棒グラフ</button>
         </div>
         <div style="position:relative;width:100%;height:170px"><canvas id="anaCb" role="img" aria-label="推移グラフ"></canvas></div>
         ${anaGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からの${metricLabel}の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ ${trend.unit.replace('別','')}ごとの${metricLabel}</div>`}
@@ -1862,13 +1870,6 @@ function rAnalysis(container){
         borderColor:neutral?'#3a9bff':'#00e08a',
         fill:neutral?{target:'origin',above:'rgba(58,155,255,.2)',below:'rgba(58,155,255,.2)'}:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},
         pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:xScale,y:yScale}}}));
-    } else if(anaGraphMode==='line'){
-      const dotCols=trend.data.map(v=>neutral?'#3a9bff':(v>=0?'#00e08a':'#ff5d5d'));
-      CI.push(new Chart(cv,{type:'line',data:{labels:trend.labels,datasets:[{data:trend.data,borderWidth:2,tension:.25,
-        segment:{borderColor:ctx=>(neutral?'#3a9bff':((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d'))},
-        borderColor:neutral?'#3a9bff':'#00e08a',
-        fill:{target:'origin',above:neutral?'rgba(58,155,255,.2)':'rgba(0,224,138,.22)',below:neutral?'rgba(58,155,255,.2)':'rgba(255,93,93,.22)'},
-        pointRadius:trend.data.length<=25?3:0,pointBackgroundColor:dotCols,pointBorderColor:dotCols}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:xScale,y:yScale}}}));
     } else {
       const pos=trend.data.map(v=>v>=0?v:0), neg=trend.data.map(v=>v<0?v:0);
       const ds=neutral
@@ -1879,7 +1880,7 @@ function rAnalysis(container){
   },80); }
 }
 
-let wlGraphOpen=false, wlGraphMode='line';   // 稼働一覧のグラフ（開閉・折れ線/棒）
+let wlGraphOpen=false, wlGraphMode='cum';   // 稼働一覧のグラフ（開閉・累計/棒）
 window.wlGraphToggle=function(){ wlGraphOpen=!wlGraphOpen; ra(); };
 window.wlGraphSet=function(m){ wlGraphMode=m; ra(); };
 // 絞り込み結果（確定のみ）を日付ごとに集計 → {labels, day, cum}
@@ -1900,12 +1901,12 @@ function wlGraphData(rows){
 let wlSort='date_desc';
 let wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set(),status:new Set()};
 let wlFilterOpen=null;
-const WL_PERIODS=[['all','すべて'],['today','本日'],['week','今週'],['lastweek','先週'],['month','今月'],['lastmonth','先月'],['last7','直近7日'],['last30','直近30日'],['thisyear','今年'],['lastyear','去年']];
+const WL_PERIODS=[['all','すべて'],['today','本日'],['yesterday','昨日'],['week','今週'],['lastweek','先週'],['month','今月'],['lastmonth','先月'],['last7','直近7日'],['last30','直近30日'],['thisyear','今年'],['lastyear','去年']];
 // 期間指定の状態（wl=稼働一覧 / ana=収支分析 で独立）
 const PR={
-  wl:{period:'all',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
-  ana:{period:'all',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
-};
+  wl:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
+  ana:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
+};   // デフォルトは今月
 const WL_SORTS=[['date_desc','日付：新しい順'],['date_asc','日付：古い順'],['real_desc','実収支：高い順'],['real_asc','実収支：低い順'],['hours_desc','稼働：長い順'],['hourly_desc','時給：高い順'],['no_asc','台番：小さい順'],['no_desc','台番：大きい順']];
 
 // 期間フィルタの判定範囲（[from,to] のローカル日付文字列 YYYY-MM-DD、null=無制限）を返す
@@ -1918,6 +1919,7 @@ function prRange(tgt){
   const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const todayStr=ymd(t);
   if(wlPeriod==='today') return {from:todayStr,to:todayStr};
+  if(wlPeriod==='yesterday'){ const y2=new Date(t); y2.setDate(t.getDate()-1); const ys=ymd(y2); return {from:ys,to:ys}; }
   if(wlPeriod==='week'){ const dow=(t.getDay()+6)%7; const s=new Date(t); s.setDate(t.getDate()-dow); return {from:ymd(s),to:todayStr}; } // 月曜始まり
   if(wlPeriod==='month'){ const s=new Date(t.getFullYear(),t.getMonth(),1); return {from:ymd(s),to:todayStr}; }
   if(wlPeriod==='last7'){ const s=new Date(t); s.setDate(t.getDate()-6); return {from:ymd(s),to:todayStr}; }
@@ -1962,7 +1964,14 @@ window.wlToggle=function(kind,val){ const set=wlFil[kind]; const v=(kind==='stor
 window.wlClear=function(kind){ wlFil[kind]=new Set(); ra(); };
 window.wlClearAll=function(){ wlFil={machine:new Set(),store:new Set(),member:new Set(),machineNo:new Set(),status:new Set()}; wlFilterOpen=null; ra(); };
 
-window.wlEdit=function(mid,y,mo,day,id){ cy=+y; cm=+mo; selDay=null; oForm(+mid,+day,id, (+mid!==myMid())?1:undefined); };   // 他人の記録は閲覧専用
+window.wlEdit=function(mid,y,mo,day,id,el){ cy=+y; cm=+mo; selDay=null;
+  // 開く前のスクロール位置を保持：行から遡って実際のスクロールコンテナを特定（iOSで#wrap以外が実スクローラの場合に対応）
+  let sc=null;
+  try{ let p=el&&el.parentElement; while(p){ if(p.scrollHeight>p.clientHeight+4 && (p===document.scrollingElement || /(auto|scroll)/.test(getComputedStyle(p).overflowY))){ sc=p; break; } p=p.parentElement; } }catch(e){}
+  if(!sc) sc=document.getElementById('wrap');
+  mlScrollEl=sc; mlScrollY=(sc&&sc.scrollTop)||0; mlAnchor=id||null;
+  mlAnchorTop=null; try{ if(el){ mlAnchorTop=el.getBoundingClientRect().top; } }catch(e){}   // 行が見えていた画面上の高さを記録
+  oForm(+mid,+day,id, (+mid!==myMid())?1:undefined); };   // 他人の記録は閲覧専用
 
 function prLabel(t){
   const P=PR[t];
@@ -2066,8 +2075,7 @@ window.prCalDone=function(t){
 };
 window.prCalCancel=function(t){ const P=PR[t]; P.calOpen=false; P.selFrom=null; P.selTo=null; ra(); };
 function wlFilterBar(){
-  const cands=anaCands();
-  const opts={ machine:cands.machine.map(m=>[m,m]), store:S.map((s,i)=>[i,s.name]), member:N.map((n,i)=>[i,n]), machineNo:cands.machineNo.map(no=>[no, no==='(未入力)'?'台番なし':'#'+no]), status:[['playing','遊戯中'],['done','確定済み']] };
+  const opts=facetOpts('wl');   // 連動フィルタ：期間＋他の絞り込みで0件になる選択肢は出さない
   const labels={machine:'機種',store:'店',member:'メンバー',machineNo:'台番',status:'ステータス'};
   const pills=['status','machine','store','member','machineNo'].map(k=>{
     const n=wlFil[k].size; const active=wlFilterOpen===k;
@@ -2083,13 +2091,13 @@ function wlFilterBar(){
 
 function wlRow(l){
   const v=mlVals(l); const store=S[l.storeIdx]?.name||'不明';
-  const amt=v.daiYen!=null?`<span class="wlamt ${c(v.daiYen)}">${f(v.daiYen)}</span>`:'<span class="playbadge">遊戯中</span>';
+  const amt=v.daiYen!=null?`<span class="wlamt ${c(v.daiYen)}">${f(v.daiYen)}</span>`:'<span class="playbadge">遊技中</span>';
   const subs=[];
   subs.push(`投資 ${(parseFloat(l.invest)||0).toLocaleString()}円`);
   subs.push(`稼働 ${(parseFloat(l.hours)||0)>0?(Math.round((parseFloat(l.hours)||0)*10)/10)+'h':'—'}`);
   if(v.hourly!=null) subs.push(`時給 <span class="${v.hourly>0?'pos':v.hourly<0?'neg':''}">${fh(v.hourly)}円</span>`);
   if(v.evGap!=null) subs.push(`EV差 <span class="${v.evGap>0?'pos':v.evGap<0?'neg':''}">${v.evGap>0?'+':''}${v.evGap.toLocaleString()}円</span>`);
-  return `<div class="wlrow${v.hasEnd?'':' playing'}" onclick="wlEdit(${l.mid},${l.y},${l.mo},${l.day},'${l.id}')">
+  return `<div class="wlrow${v.hasEnd?'':' playing'}" onclick="wlEdit(${l.mid},${l.y},${l.mo},${l.day},'${l.id}',this)">
     <div class="wltop"><span class="wldate">${l.y}/${l.mo+1}/${l.day}</span><span class="wlmem">${avatarMini(l.mid)}${N[l.mid]||'?'}</span>${amt}</div>
     <div class="wlname">${store}${l.machine?' / '+String(l.machine).replace(/</g,'&lt;'):''}${l.machineNo?`<span class="wlno"> #${mlEsc(l.machineNo)}</span>`:''}<span class="ebadge ${l.playType==='ev'?'ev':'st'}">${l.playType==='ev'?'期待値':'設定狙い'}</span></div>
     <div class="wlsub">${subs.join(' ・ ')}</div>
@@ -2099,30 +2107,31 @@ function wlRow(l){
 function rWorkLog(container){
   const div=document.createElement('div'); div.className='viewscroll';
   const rows=wlSorted();
-  const rowsP=rows.filter(l=>!mlVals(l).hasEnd), rowsD=rows.filter(l=>mlVals(l).hasEnd);   // 遊戯中を分離
+  const rowsP=rows.filter(l=>!mlVals(l).hasEnd), rowsD=rows.filter(l=>mlVals(l).hasEnd);   // 遊技中を分離
   const total=rows.reduce((s,l)=>s+(mlVals(l).daiYen||0),0);
   const sortOpts=WL_SORTS.map(([k,lab])=>`<option value="${k}"${wlSort===k?' selected':''}>${lab}</option>`).join('');
   div.innerHTML=`
+    <div class="ctlfix">
     <div class="topbar"><span class="topbar-title">稼働一覧</span><span class="topbar-val ${c(total)}">${f(total)}</span></div>
     ${prPeriodBar('wl')}
     ${wlFilterBar()}
     <div class="wlbar"><span class="wlcount">${rows.length}件</span><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
+    </div>
     <div style="padding:0 0 2px"><button class="tlink" onclick="wlGraphToggle()">${wlGraphOpen?'グラフを閉じる ▴':'グラフを表示 ▾'}</button></div>
     ${wlGraphOpen?(()=>{
       let tot=0,cnt=0; rows.forEach(l=>{const v=mlVals(l); if(v.hasEnd){tot+=v.daiYen||0;cnt++;}});
       return `
     <div class="wlgraph">
       <div class="wlg-modes">
-        <button class="afpill${wlGraphMode==='line'?' on':''}" onclick="wlGraphSet('line')">折れ線</button>
-        <button class="afpill${wlGraphMode==='bar'?' on':''}" onclick="wlGraphSet('bar')">棒グラフ</button>
         <button class="afpill${wlGraphMode==='cum'?' on':''}" onclick="wlGraphSet('cum')">累計</button>
+        <button class="afpill${wlGraphMode==='bar'?' on':''}" onclick="wlGraphSet('bar')">棒グラフ</button>
         <span class="wlg-total"><span class="wlg-tlbl">合計（${cnt}件）</span><span class="${c(tot)}">${f(tot)}</span></span>
       </div>
       <div style="height:170px"><canvas id="wlCb"></canvas></div>
       ${wlGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からその日までの実収支の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ その日の実収支</div>`}
     </div>`;})():''}
     <div class="asec">
-      ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':(rowsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊戯中</div><div class="wllist">${rowsP.map(wlRow).join('')}</div>${rowsD.length?`<div class="mev-seclbl">確定済み</div><div class="wllist">${rowsD.map(wlRow).join('')}</div>`:''}`:`<div class="wllist">${rowsD.map(wlRow).join('')}</div>`)}
+      ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':(rowsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊技中</div><div class="wllist">${rowsP.map(wlRow).join('')}</div>${rowsD.length?`<div class="mev-seclbl">確定済み</div><div class="wllist">${rowsD.map(wlRow).join('')}</div>`:''}`:`<div class="wllist">${rowsD.map(wlRow).join('')}</div>`)}
     </div>`;
   container.appendChild(div);
 
@@ -2137,15 +2146,6 @@ function rWorkLog(container){
         borderColor:'#00e08a',
         fill:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},
         pointRadius:0}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v===0?'0':f(v)},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
-    } else if(wlGraphMode==='line'){
-      const dotCols=gd.day.map(v=>v>=0?'#00e08a':'#ff5d5d');
-      CI.push(new Chart(cv,{type:'line',data:{labels:gd.labels,datasets:[{data:gd.day,
-        borderWidth:2,tension:.25,
-        segment:{borderColor:ctx=>((ctx.p0.parsed.y+ctx.p1.parsed.y)/2>=0?'#00e08a':'#ff5d5d')},   // プラス区間=緑線／マイナス区間=赤線
-        borderColor:'#00e08a',
-        fill:{target:'origin',above:'rgba(0,224,138,.22)',below:'rgba(255,93,93,.22)'},            // 0ラインとの間を薄く塗る
-        pointRadius:gd.day.length<=25?3:0,pointBackgroundColor:dotCols,pointBorderColor:dotCols}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v===0?'0':f(v)},grid:{color:'rgba(128,128,128,0.1)'}}}}}));
     } else {
       const pos=gd.day.map(v=>v>=0?v:0), neg=gd.day.map(v=>v<0?v:0);
@@ -2564,7 +2564,7 @@ function mlRowHtml(l,clickable,mid,day){
   return `<div class="mevc ${clickable?'mine':'other'}${v.hasEnd?'':' playing'}" style="cursor:pointer" onclick="oForm(${mid},${day},'${l.id}'${clickable?'':',1'})">
     ${clickable?'':'<span class="mev-view">閲覧</span>'}
     <div class="mevn">${S[l.storeIdx]?.name||'不明'}${l.machine?' / '+l.machine:''}${l.machineNo?`<span style="color:var(--text-muted);font-weight:400"> #${mlEsc(l.machineNo)}</span>`:''}<span class="ebadge ${l.playType==='ev'?'ev':'st'}">${l.playType==='ev'?'期待値':'設定狙い'}</span></div>
-    <div style="font-size:10px;color:var(--text-muted);line-height:1.6">${v.hasEnd?`実収支 ${v.daiReal>0?'+':''}${v.daiReal.toLocaleString()}枚${v.hourly!=null?` ・ 時給 <span class="${v.hourly>0?'pos':v.hourly<0?'neg':''}">${fh(v.hourly)}円</span>`:''}${v.evGap!=null?` ・ EV差 <span class="${v.evGap>0?'pos':v.evGap<0?'neg':''}">${v.evGap>0?'+':''}${v.evGap.toLocaleString()}円</span>`:''}`:'<span class="playbadge">遊戯中</span>'}</div>
+    <div style="font-size:10px;color:var(--text-muted);line-height:1.6">${v.hasEnd?`実収支 ${v.daiReal>0?'+':''}${v.daiReal.toLocaleString()}枚${v.hourly!=null?` ・ 時給 <span class="${v.hourly>0?'pos':v.hourly<0?'neg':''}">${fh(v.hourly)}円</span>`:''}${v.evGap!=null?` ・ EV差 <span class="${v.evGap>0?'pos':v.evGap<0?'neg':''}">${v.evGap>0?'+':''}${v.evGap.toLocaleString()}円</span>`:''}`:'<span class="playbadge">遊技中</span>'}</div>
     <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px">${v.daiYen!==null?`<span class="eamt ${c(v.daiYen)}">${f(v.daiYen)}</span>`:'<span class="esub">記録途中</span>'}</div>
   </div>`;
 }
@@ -2576,11 +2576,11 @@ window.oDayTeam=function(day){
   const mine=rows.filter(isOwn);
   const others=rows.filter(l=>!isOwn(l));
   const nameRow=l=>`<div style="font-size:10px;color:${isOwn(l)?'var(--text-success)':'var(--text-secondary)'};font-weight:600;margin:2px 0 -2px;display:flex;align-items:center">${avatarMini(l.mid)}${N[l.mid]}</div>`;
-  const secSplit=(arr,own)=>{   // 遊戯中/確定済みに分離して描画
+  const secSplit=(arr,own)=>{   // 遊技中/確定済みに分離して描画
     const p=arr.filter(l=>!mlVals(l).hasEnd).sort(srtT), d=arr.filter(l=>mlVals(l).hasEnd).sort(srtT);
     const rowH=l=>(own?'':nameRow(l))+mlRowHtml(l,own,l.mid,day);
     if(!p.length) return d.map(rowH).join('');
-    let h=`<div class="mev-seclbl playing sub">遊戯中</div>`+p.map(rowH).join('');
+    let h=`<div class="mev-seclbl playing sub">遊技中</div>`+p.map(rowH).join('');
     if(d.length) h+=`<div class="mev-seclbl sub">確定済み</div>`+d.map(rowH).join('');
     return h;
   };
@@ -2595,11 +2595,11 @@ window.oDayTeam=function(day){
 };
 window.oDayView=function(mid,day){
   const ls=gML(mid,cy,cm).filter(l=>l.day===day).sort((a,b)=>String(b.id).localeCompare(String(a.id)));
-  const lsP=ls.filter(l=>!mlVals(l).hasEnd), lsD=ls.filter(l=>mlVals(l).hasEnd);   // 遊戯中を分離
+  const lsP=ls.filter(l=>!mlVals(l).hasEnd), lsD=ls.filter(l=>mlVals(l).hasEnd);   // 遊技中を分離
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day}（閲覧）`;
   document.getElementById('mbody').innerHTML=`
     ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の記録はありません</div>':''}
-    ${lsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:2px">遊戯中</div>`+lsP.map(l=>mlRowHtml(l,false,mid,day)).join(''):''}
+    ${lsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:2px">遊技中</div>`+lsP.map(l=>mlRowHtml(l,false,mid,day)).join(''):''}
     ${lsD.length?(lsP.length?`<div class="mev-seclbl">確定済み</div>`:'')+lsD.map(l=>mlRowHtml(l,false,mid,day)).join(''):''}
     <div style="font-size:10px;color:var(--text-muted);padding:4px 0">閲覧のみ（編集は本人）</div>`;
   document.getElementById('mfoot').innerHTML=`<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`;
@@ -2608,11 +2608,11 @@ window.oDayView=function(mid,day){
 };
 window.oDayM=function(mid,day){
   const ls=gML(mid,cy,cm).filter(l=>l.day===day).sort((a,b)=>String(b.id).localeCompare(String(a.id)));
-  const lsP=ls.filter(l=>!mlVals(l).hasEnd), lsD=ls.filter(l=>mlVals(l).hasEnd);   // 遊戯中を分離
+  const lsP=ls.filter(l=>!mlVals(l).hasEnd), lsD=ls.filter(l=>mlVals(l).hasEnd);   // 遊技中を分離
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day}`;
   document.getElementById('mbody').innerHTML=`
     ${ls.length===0?'<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px 0">この日の台記録はまだありません</div>':''}
-    ${lsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:2px">遊戯中</div>`+lsP.map(l=>mlRowHtml(l,true,mid,day)).join(''):''}
+    ${lsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:2px">遊技中</div>`+lsP.map(l=>mlRowHtml(l,true,mid,day)).join(''):''}
     ${lsD.length?(lsP.length?`<div class="mev-seclbl">確定済み</div>`:'')+lsD.map(l=>mlRowHtml(l,true,mid,day)).join(''):''}`;
   document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button><button class="btn p" onclick="oForm(${mid},${day},null)">＋ この日に追加</button>`;
   oM(); mlFromList=true;
@@ -2639,8 +2639,8 @@ window.oForm=function(mid,day,editId,ro){
     if(!e){ const hit=allMLogs().find(l=>String(l.id)===String(editId)); if(hit){ cy=hit.y; cm=hit.mo; day=hit.day; e=hit; } }  // 月ズレでも全期間から探して合わせる
   }
   const isEdit=!!e; e=e||{};
-  const playing=isEdit && (e.playing===true || e.endMedal==null||e.endMedal==='');   // 遊戯中保存 or 終了時持ちメダル未入力＝遊戯中
-  mlStartLock=isEdit||mlReadOnly; mlPlayLock=!(playing&&!mlReadOnly); mlEndLock=true; mlMemoLock=isEdit||mlReadOnly; // 遊戯中の記録は遊戯中フェーズをデフォ展開
+  const playing=isEdit && (e.playing===true || e.endMedal==null||e.endMedal==='');   // 遊技中保存 or 終了時持ちメダル未入力＝遊技中
+  mlStartLock=isEdit||mlReadOnly; mlPlayLock=!(playing&&!mlReadOnly); mlEndLock=true; mlMemoLock=isEdit||mlReadOnly; // 遊技中の記録は遊技中フェーズをデフォ展開
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録${mlReadOnly?'（閲覧）':''}`;
   const sOpts=S.map((s,i)=>`<option value="${i}"${i===(e.storeIdx||0)?' selected':''}>${s.name}</option>`).join('');
   const pt=e.playType||'setting';
@@ -2687,7 +2687,7 @@ window.oForm=function(mid,day,editId,ro){
     </div>
 
     <div class="secbox" id="secPl">
-      <div class="sechd"><span class="st play">遊戯中</span><span id="secPlHd"></span></div>
+      <div class="sechd"><span class="st play">遊技中</span><span id="secPlHd"></span></div>
       <div class="secview" id="viewPl"></div>
       <div class="secedit" id="editPl">
         <div class="pcard cash">
@@ -2742,7 +2742,7 @@ window.oForm=function(mid,day,editId,ro){
       <div class="sechd"><span class="st">終了時</span><span id="secEnHd"></span></div>
       <div class="secview" id="viewEn"></div>
       <div class="secedit" id="editEn">
-        <div class="fr"><label class="fl">終了時持ちメダル（枚）</label><input id="fem" type="number" inputmode="numeric" placeholder="例 3500" value="${e.endMedal!=null?e.endMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('femErr');if(_e)_e.style.display='none';mlCalc()"><div id="femErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には終了時持ちメダルの入力が必要です（途中なら「遊戯中」で保存）</div></div>
+        <div class="fr"><label class="fl">終了時持ちメダル（枚）</label><input id="fem" type="number" inputmode="numeric" placeholder="例 3500" value="${e.endMedal!=null?e.endMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('femErr');if(_e)_e.style.display='none';mlCalc()"><div id="femErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には終了時持ちメダルの入力が必要です（途中なら「遊技中」で保存）</div></div>
         <div class="fr"><label class="fl">稼働時間（h）</label><input id="fhr" type="number" inputmode="decimal" step="0.5" placeholder="例 3.5" value="${e.hours||''}" oninput="mlCalc()"></div>
         <div id="jgEnd" style="${e.jug?'':'display:none'}">
           <div class="jglbl">ジャグラー — 終了時</div>
@@ -2789,9 +2789,8 @@ window.oForm=function(mid,day,editId,ro){
       <textarea id="fmm" style="display:none">${e.memo?mlEsc(e.memo):''}</textarea>
     </div>
     ${isEdit&&!mlReadOnly?`<button class="btn danger" style="width:100%" onclick="delE(${mid},'${editId}')">この記録を削除</button>`:''}`;
-  document.getElementById('mfoot').innerHTML=mlReadOnly?`<button class="btn p" style="width:100%" onclick="mlTryClose()">閉じる</button>`:`<button class="btn" onclick="mlTryClose()">キャンセル</button><button class="btn play" onclick="svML(${mid},${day},'${editId||''}','play')">遊戯中</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}','done')">保存</button>`;
+  document.getElementById('mfoot').innerHTML=mlReadOnly?`<button class="btn p" style="width:100%" onclick="mlTryClose()">閉じる</button>`:`<button class="btn" onclick="mlTryClose()">キャンセル</button><button class="btn play" onclick="svML(${mid},${day},'${editId||''}','play')">遊技中</button><button class="btn p" onclick="svML(${mid},${day},'${editId||''}','done')">保存</button>`;
   oM(); mlFormOpen=true;   // フォーム表示中は閉じる操作に確認を挟む（変更がある時だけ）
-  const _mx=document.getElementById('mclose'); if(_mx)_mx.style.display='none';   // 台記録は×なし（キャンセル/保存で閉じる）
 
   psInit(e); applyMLLocks(); puSync(); psView('s'); psView('k'); psViewCash(); psArrowVals(); renderHoList(); snapSec('start'); snapSec('end'); mlCalc();   // psInitはビュー描画(applyMLLocks)より先に
   mlFormSnap=JSON.stringify(curForm());   // 開いた時点の状態（閉じる時の変更検知用）
@@ -2806,6 +2805,65 @@ function curForm(){
     jRegSolo:g('jrsolo')?.value, jRegChe:g('jrche')?.value, jRegUnk:g('jrunk')?.value,
     jBigSolo:g('jbsolo')?.value, jBigChe:g('jbche')?.value, jBigUnk:g('jbunk')?.value};
 }
+// ===== トップに戻るボタン（領域ごと：#wrap＝画面全体／#mbody＝モーダル内） =====
+// 出現しきい値＝基本150px。小さい領域では可視高さ×0.4まで縮む（最低60px）＝領域サイズに応じて出現
+function toTopThreshold(el){ return Math.max(60, Math.min(150, (el.clientHeight||0)*0.4)); }
+window.scrollTopWrap=function(){ const t=document.getElementById('wrap'); if(t) t.scrollTo({top:0,behavior:'smooth'}); };
+window.scrollTopModal=function(){ const t=document.getElementById('mbody'); if(t) t.scrollTo({top:0,behavior:'smooth'}); };
+let lastArea=null;   // 直近にスクロールした内部領域（.scrollarea＝稼働履歴リストなど）
+window.scrollTopArea=function(){ if(lastArea&&document.contains(lastArea)) lastArea.scrollTo({top:0,behavior:'smooth'}); };
+function updToTop(){
+  // 画面全体（#wrap）。モーダル表示中は隠す。貯メダルタブではsticky固定ヘッダーの直下に出す
+  const w=document.getElementById('wrap'), b=document.getElementById('toTop');
+  if(w&&b){
+    const show = w.scrollTop>toTopThreshold(w) && !document.body.classList.contains('modal-open');
+    if(show){
+      let top=68;
+      const mf=document.querySelector('.medal-fixed,.ctlfix');
+      if(mf && mf.offsetParent!==null){ const r=mf.getBoundingClientRect(); if(r.bottom>top-10) top=Math.round(r.bottom)+10; }
+      b.style.top=top+'px';
+    }
+    b.classList.toggle('show', show);
+  }
+  // モーダル内（#mbody）
+  const m=document.getElementById('mbody'), bm=document.getElementById('toTopM');
+  if(m&&bm){
+    const show = document.body.classList.contains('modal-open') && m.scrollTop>toTopThreshold(m);
+    if(show){ const d=document.getElementById('mdrag'); bm.style.top=((d?d.offsetHeight:56)+8)+'px'; }
+    bm.classList.toggle('show', show);
+  }
+  // 内部スクロール領域（稼働履歴リスト等）：領域の上端に追従して浮かせる
+  const a=(lastArea&&document.contains(lastArea))?lastArea:null, ba=document.getElementById('toTopA');
+  if(ba){
+    let show=false;
+    if(a && !document.body.classList.contains('modal-open') && a.scrollTop>toTopThreshold(a)){
+      const r=a.getBoundingClientRect();
+      if(r.bottom>130 && r.top<window.innerHeight-90){   // 領域がほぼ画面外なら出さない
+        show=true;
+        ba.style.left=Math.round(r.left+r.width/2-18)+'px'; ba.style.marginLeft='0';
+        ba.style.top=Math.round(Math.max(r.top,44)+36)+'px';   // stickyの見出し（稼働履歴）の下に出す
+      }
+    }
+    ba.classList.toggle('show', show);
+  }
+}
+(function(){
+  function bind(){
+    let ticking=false;
+    const kick=()=>{ if(ticking) return; ticking=true; requestAnimationFrame(()=>{ updToTop(); ticking=false; }); };
+    document.addEventListener('scroll', (e)=>{ const el=e.target; if(el&&el!==document&&el.matches&&el.matches('.scrollarea')) lastArea=el; kick(); }, true);   // キャプチャで全スクロール領域を拾う
+    document.addEventListener('click', ()=>{ setTimeout(updToTop,60); }, true);   // モーダル内の画面切替（scrollTopリセット）に追従
+  }
+  if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
+})();
+// ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
+const APP_VERSION='ver.20260706-222330';   // ビルド時に日時へ自動置換
+window.loadLatestApp=function(){
+  confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
+    try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
+    catch(e){ location.reload(); }
+  }, {yes:'更新する', no:'キャンセル', yesClass:'p'});
+};
 // ===== 貯メ・持ちメのPUSH投資（押した時点の1PUSH枚数で合計に加算。履歴でundo・手動編集可） =====
 let PS={ s:{n:0,total:0,hist:[]}, k:{n:0,total:0,hist:[]} };
 function psInit(e){
@@ -3058,7 +3116,7 @@ window.cancelSec=function(sec){ restoreSec(sec); setLock(sec,true); applyMLLocks
 window.sPTm=function(t){ document.getElementById('rs').className='ro'+(t==='setting'?' sel':''); document.getElementById('re').className='ro'+(t==='ev'?' sev sel':''); const er=document.getElementById('evRow'); if(er) er.style.display=(t==='ev'?'':'none'); const egc=document.getElementById('cEvGapCell'); if(egc) egc.style.display=(t==='ev'?'':'none'); if(typeof mlCalc==='function') mlCalc(); };
 window.mlCalc=function(){
   const f=curForm();
-  // 遊戯中のPUSHサブ表示（現金＝円と枚、貯メ/持ちメ＝枚）
+  // 遊技中のPUSHサブ表示（現金＝円と枚、貯メ/持ちメ＝枚）
   { const _mp=(S[f.storeIdx]||{}).mp||46; const pn=v=>parseFloat(v)||0; const _pu=pn(f.pushUnit)||_mp;
     const el=(id,t)=>{const e2=document.getElementById(id); if(e2)e2.textContent=t;};
     el('fpcSub', pn(f.pushC)>0?`= ${(pn(f.pushC)*1000).toLocaleString()}円 ・ ${Math.round(pn(f.pushC)*_mp).toLocaleString()}枚`:'');
@@ -3068,7 +3126,7 @@ window.mlCalc=function(){
   const cls=sign>0?'pos':sign<0?'neg':'';
   if(dv){ const dy=v.daiYen===null?null:Math.round(v.daiYen); dv.textContent=dy===null?'—':(dy>0?'+':'')+dy.toLocaleString()+'円'; dv.className='dval '+cls; }
   if(tri){ tri.textContent=sign>0?'▲':sign<0?'▼':''; tri.className='dtri '+cls; }
-  if(pill){ pill.textContent=v.daiReal===null?'遊戯中 — 終了時持ちメダルを入力すると算出':'メダル '+(v.daiReal>0?'+':'')+v.daiReal.toLocaleString()+'枚'; }
+  if(pill){ pill.textContent=v.daiReal===null?'遊技中 — 終了時持ちメダルを入力すると算出':'メダル '+(v.daiReal>0?'+':'')+v.daiReal.toLocaleString()+'枚'; }
   const hh=document.getElementById('cHourly');
   if(hh){ hh.textContent=v.hourly===null?'—':(v.hourly>0?'+':'')+v.hourly.toLocaleString()+'円/h'; hh.className='dcv '+(v.hourly>0?'pos':v.hourly<0?'neg':''); }
   const eg=document.getElementById('cEvGap');
@@ -3158,7 +3216,7 @@ window.svML=function(mid,day,editId,mode){
     id:editId||`${mid}-ml-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
     day, playType:isEv?'ev':'setting', ev:gv('fev')||0, storeIdx, machine,
     machineNo:document.getElementById('fno')?.value.trim()||'',
-    playing:(mode==='play'),                                       // 遊戯中ボタンで保存＝確定するまで遊戯中扱い
+    playing:(mode==='play'),                                       // 遊技中ボタンで保存＝確定するまで遊技中扱い
     pushC:gv('fpc')||0,
     pushS:PS.s.n, storedTotal:Math.round(PS.s.total), pushSHist:PS.s.hist.slice(),   // 貯メダル投資：回数・合計（枚）・PUSHごとの枚数履歴
     pushK:PS.k.n, carryTotal:Math.round(PS.k.total), pushKHist:PS.k.hist.slice(),    // 持ちメダル投資（記録用・収支計算には不使用）
@@ -3273,7 +3331,7 @@ function confirmBox(msg, onYes, opts){
   let bg=document.getElementById('cfbg');
   if(!bg){ bg=document.createElement('div'); bg.id='cfbg'; bg.className='modal-bg'; bg.style.cssText='z-index:400;align-items:center;padding:0 28px'; document.body.appendChild(bg); }
   bg.innerHTML=`<div style="width:100%;max-width:320px;background:#1c1c1e;border:0.5px solid var(--border-strong);border-radius:16px;padding:18px;animation:memoFade .16s ease-out">
-    <div style="font-size:14px;color:#e4e4e7;line-height:1.6;white-space:pre-wrap;margin-bottom:15px">${msg}</div>
+    <div style="font-size:14px;color:#e4e4e7;line-height:1.6;margin-bottom:15px">${String(msg).split('\n').map(line=>line.trim().startsWith('※')?`<div style="font-size:11px;color:var(--text-muted);margin-top:7px;line-height:1.5">${line}</div>`:`<div style="white-space:pre-wrap">${line}</div>`).join('')}</div>
     <div style="display:flex;gap:10px"><button class="btn" style="flex:1" id="cfNo">${noL}</button><button class="btn ${yesC}" style="flex:1" id="cfYes">${yesL}</button></div>
   </div>`;
   bg.className='modal-bg open';
@@ -3344,12 +3402,17 @@ window.oSet=function(){
   // 招待コード
   const codeSection = `<div class="setcard"><div class="setcard-hd"><div class="stlabel">招待コード</div></div>
     <div class="prow"><div style="font-size:16px;font-weight:600;letter-spacing:2px">${inviteCode||'—'}</div><button class="linkbtn" onclick="copyCode()">コピー</button></div>
-    <div style="font-size:10px;color:var(--text-muted);margin:2px 0 6px">このコードを伝えると、相手はログイン後にチームへ参加できます</div>
-    <button class="imp-btn" onclick="importLocal()">この端末の旧データ(localStorage)を取り込む</button></div>`;
+    <div style="font-size:10px;color:var(--text-muted);margin:2px 0 6px">このコードを伝えると、相手はログイン後にチームへ参加できます</div></div>`;
   const dangerSection = leader ? `<div class="setcard danger"><div class="setcard-hd"><div class="stlabel">データ管理（リーダー）</div></div>
     <div style="font-size:10px;color:var(--text-muted);margin:0 0 8px;line-height:1.6">テストが終わったら、ここで記録を消してまっさらな状態から始められます。チーム・メンバー・店舗・初期現金・初期メダルは残ります。</div>
     <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・給与）</button></div>` : '';
-  document.getElementById('mbody').innerHTML = storeSection + mcSection + cashSection + memberSection + codeSection + dangerSection;
+  const updateSection = `<div class="setcard">
+    <div class="setcard-hd"><div class="stlabel">アプリの更新</div></div>
+    <div style="font-size:11px;color:var(--text-muted);margin:0 0 9px;line-height:1.6">最新版がアップされたら、下のボタンで取り込めます。</div>
+    <button class="btn p" style="width:100%" onclick="loadLatestApp()">最新版を読み込む</button>
+    <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px">${APP_VERSION}</div>
+  </div>`;
+  document.getElementById('mbody').innerHTML = storeSection + mcSection + cashSection + memberSection + codeSection + updateSection + dangerSection;
   document.getElementById('mfoot').innerHTML = stEdit
     ? `<button class="btn" onclick="cancelSt()">キャンセル</button><button class="btn p" onclick="svSet()">保存</button>`
     : `<button class="btn p" style="width:100%" onclick="cM()">閉じる</button>`;
@@ -3582,32 +3645,30 @@ window.mlGoList=function(){   // その日の日別一覧を開く（個人別�
   const day=mlCurDay; if(day==null){ cM(); return; }
   if(tab===1) oDayM(hoMid,day); else oDayTeam(day);
 };
-window.mlTryClose=function(){
-  let dirty=false;
-  const wasForm=mlFormOpen;
-  if(mlFormOpen && !mlReadOnly){ try{ dirty=(JSON.stringify(curForm())!==mlFormSnap); }catch(_){ dirty=true; } }
-  const go=()=>{ mlFormOpen=false; if(wasForm&&mlNavList) mlGoList(); else cM(); };   // 一覧経由→一覧へ／それ以外→完全閉じ
-  if(dirty){ confirmBox('入力内容を保存せずに閉じますか？', go); }
+function mlFormDirty(){
+  if(!mlFormOpen || mlReadOnly) return false;
+  try{ return JSON.stringify(curForm())!==mlFormSnap; }catch(_){ return true; }
+}
+function mlCloseWithConfirm(go){
+  if(mlFormDirty()) confirmBox('入力内容を保存せずに閉じますか？', go);
   else go();
+}
+window.mlTryClose=function(){
+  const wasForm=mlFormOpen && !mlReadOnly;
+  if(!wasForm){ cM(); return; }   // 台記録フォーム以外は下の「閉じる」と全く同じ即cM
+  mlCloseWithConfirm(()=>{ mlFormOpen=false; if(mlNavList) mlGoList(); else cM(); });
 };
 window.mlBackBtn=function(){   // 上部の戻るボタン：常にその日の一覧へ（変更ありは確認）
-  let dirty=false;
-  if(mlFormOpen && !mlReadOnly){ try{ dirty=(JSON.stringify(curForm())!==mlFormSnap); }catch(_){ dirty=true; } }
-  const go=()=>{ mlFormOpen=false; mlGoList(); };
-  if(dirty){ confirmBox('入力内容を保存せずに閉じますか？', go); }
-  else go();
+  mlCloseWithConfirm(()=>{ mlFormOpen=false; mlGoList(); });
 };
 window.mlTrySwipeClose=function(){   // スワイプは一覧に戻らず全て閉じる
-  let dirty=false;
-  if(mlFormOpen && !mlReadOnly){ try{ dirty=(JSON.stringify(curForm())!==mlFormSnap); }catch(_){ dirty=true; } }
-  if(dirty){ confirmBox('入力内容を保存せずに閉じますか？', ()=>{ mlFormOpen=false; cM(); }); }
-  else cM();
+  mlCloseWithConfirm(()=>{ mlFormOpen=false; cM(); });
 };
 let mOpenTimer=null;
 function oM(){const _bg=document.getElementById('mbg');const _sh=document.getElementById('msheet');
 if(mCloseTimer){clearTimeout(mCloseTimer);mCloseTimer=null;_bg.className='modal-bg';if(_sh){_sh.style.transform='';_sh.style.transition=''}_bg.style.background='';_bg.style.transition='';void _bg.offsetWidth;}   // 閉じアニメ中なら一旦閉じ状態を確定
 const wasOpen=_bg.classList.contains('open');
-_bg.className='modal-bg open';_bg.style.background='';_bg.style.transition='';document.body.classList.add('modal-open');mlFormOpen=false;mlFromList=false;const _mx=document.getElementById('mclose');if(_mx){_mx.style.display=''}
+_bg.className='modal-bg open';_bg.style.background='';_bg.style.transition='';document.body.classList.add('modal-open');mlFormOpen=false;mlFromList=false
 if(_sh){_sh.classList.remove('tall');
   if(!wasOpen){   // 新規オープン：閉じと同じ速度で下からスライドイン
     if(mOpenTimer){clearTimeout(mOpenTimer);mOpenTimer=null;}
@@ -3616,11 +3677,51 @@ if(_sh){_sh.classList.remove('tall');
     mOpenTimer=setTimeout(()=>{mOpenTimer=null;_sh.style.transform='';_sh.style.transition='';},230);
   } else {_sh.style.transform='';_sh.style.transition='';}
 }}
-let mCloseTimer=null;
+let mCloseTimer=null, mlScrollY=0, mlScrollEl=null, mlAnchor=null, mlAnchorTop=null;
+// 稼働履歴のスクロール位置復元：開いた記録の行（.wlrow）へアンカー。行が見つからなければ数値で復元。
+// 閉じた直後の再描画（ra／onSnapshot）でscrollTopが0に戻されるiOS対策として、約1.5秒間は毎フレーム位置を維持する。
+function restoreListPos(aid, y, el, top){
+  const t0=Date.now(); let cancelled=false;
+  const cancel=()=>{ cancelled=true; window.removeEventListener('touchstart',cancel,true); window.removeEventListener('wheel',cancel,true); };
+  window.addEventListener('touchstart',cancel,true); window.addEventListener('wheel',cancel,true);   // ユーザーが触ったら即中断
+  const canScroll=(p)=> p && p.scrollHeight>p.clientHeight+4 && (p===document.scrollingElement || /(auto|scroll)/.test(getComputedStyle(p).overflowY));
+  const tick=()=>{
+    if(cancelled) return;
+    if(!document.body.classList.contains('modal-open')){
+      let done=false;
+      if(aid){
+        // 再描画後の新しいDOMから該当行を探す
+        const row=document.querySelector(`.wlrow[onclick*="'${aid}'"]`);
+        if(row){
+          const r=row.getBoundingClientRect(), vh=window.innerHeight||0;
+          if(r.height>0){
+            if(top!=null){
+              // 開く直前に行が見えていた画面上の高さを再現：差分を内側→外側の順でスクロールに配分
+              let delta=r.top-top;
+              if(Math.abs(delta)>3){
+                let p=row.parentElement;
+                while(p && Math.abs(delta)>3){
+                  if(canScroll(p)){ const b=p.scrollTop; p.scrollTop=b+delta; delta-=(p.scrollTop-b); }
+                  p=(p===document.scrollingElement)?null:p.parentElement;
+                }
+              }
+            } else if(r.top<vh*0.18 || r.bottom>vh*0.85){
+              try{ row.scrollIntoView({block:'center'}); }catch(e){ row.scrollIntoView(); }   // 位置記録が無い場合は中央へ
+            }
+          }
+          done=true;
+        }
+      }
+      if(!done && el && document.contains(el) && y!=null && el.scrollHeight-el.clientHeight>=y && Math.abs(el.scrollTop-y)>2) el.scrollTop=y;   // 行が見つからない場合の数値フォールバック
+    }
+    if(Date.now()-t0<1500) requestAnimationFrame(tick); else cancel();
+  };
+  requestAnimationFrame(tick);
+}
 function cM(){
   mlFormOpen=false;mlFromList=false;profEdit=false;stEdit=false;cashEdit=false;
   const bg=document.getElementById('mbg'), sh=document.getElementById('msheet');
-  const finish=()=>{ bg.className='modal-bg'; if(sh){sh.style.transform='';sh.style.transition='';} bg.style.background=''; document.body.classList.remove('modal-open'); var mb=document.getElementById('memobg'); if(mb)mb.className='modal-bg'; ra(); };
+  const finish=()=>{ bg.className='modal-bg'; if(sh){sh.style.transform='';sh.style.transition='';} bg.style.background=''; document.body.classList.remove('modal-open'); var mb=document.getElementById('memobg'); if(mb)mb.className='modal-bg'; ra(); if(mlScrollY>0){ restoreListPos(mlAnchor, mlScrollY, mlScrollEl, mlAnchorTop); } mlAnchor=null; mlScrollY=0; mlScrollEl=null; mlAnchorTop=null; };
   if(mOpenTimer){clearTimeout(mOpenTimer);mOpenTimer=null;}
   if(bg.classList.contains('open')&&sh){
     // 下方向へスライドして閉じる
@@ -3631,7 +3732,6 @@ function cM(){
   } else finish();
 }
 window.cM=cM;
-document.getElementById('mclose').onclick=function(){ window.mlTryClose(); };
 // ボトムシートを下にドラッグで閉じる
 (function(){
   const drag=document.getElementById('mdrag'); if(!drag) return;
