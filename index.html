@@ -263,6 +263,7 @@ html,body{margin:0;background:#000;height:100%;overflow:hidden;overscroll-behavi
 
 .pundo{display:inline-flex;align-items:center;gap:4px;background:none;border:0.5px solid var(--border-strong);color:var(--text-muted);font-size:10px;font-weight:600;border-radius:8px;padding:4px 9px;cursor:pointer;flex:none}
 .pundo:active{background:#1c1c1e}
+.pcard.editing .pundo{opacity:.3;pointer-events:none}
 .pstep3 .pbtn-push{width:68px;height:60px;font-size:11px;letter-spacing:1px;flex:none}
 .ppulse{animation:pnum .35s ease-out}
 @keyframes pnum{0%{filter:brightness(1.25)}100%{filter:brightness(1)}}
@@ -1472,7 +1473,7 @@ function rMember(container,mid){
     })()}</div>
     <div class="scrollarea">
     <div class="slabel2">稼働履歴${isSelf?'（タップで編集）':''}</div>
-    <div class="asec">
+    <div class="asec" style="padding-bottom:110px">
       ${calMlRows(gML(mid,cy,cm).map(l=>Object.assign({},l,{mid,y:cy,mo:cm})))}
     </div>
     </div>`;
@@ -2614,7 +2615,7 @@ window.oForm=function(mid,day,editId,ro){
       <div class="secview" id="viewPl"></div>
       <div class="secedit" id="editPl">
         <div class="pcard cash">
-          <div class="pcard-hd"><span class="pcard-t">現金投資</span><span class="phsp"></span><button class="pundo" onclick="pushStep('fpc',-1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>戻す</span></button></div>
+          <div class="pcard-hd"><span class="pcard-t">現金投資</span><span class="phsp"></span><button class="pundo pminus" onclick="pushStep('fpc',-1)"><span style="font-size:14px;font-weight:700;line-height:1">−</span><span>1PUSH</span></button></div>
           <div class="pstep3">
             <div class="pttl-wrap"><div class="ptotal" id="psViewC"></div><button class="tlink pedit" onclick="togglePushEdit('c')" id="psEditBtnC">編集</button></div>
             <div class="parr-wrap"><span class="parr-val" id="psViewCVal"></span><svg class="parr-svg" width="40" height="16" viewBox="0 0 60 22"><g fill="currentColor"><path class="pv pv1" d="M52 1 L40 11 L52 21 L59 21 L47 11 L59 1 Z"/><path class="pv pv2" d="M32 1 L20 11 L32 21 L39 21 L27 11 L39 1 Z"/><path class="pv pv3" d="M12 1 L0 11 L12 21 L19 21 L7 11 L19 1 Z"/></g></svg></div>
@@ -2732,7 +2733,12 @@ function curForm(){
 // ===== 貯メ・持ちメのPUSH投資（押した時点の1PUSH枚数で合計に加算。履歴でundo・手動編集可） =====
 let PS={ s:{n:0,total:0,hist:[]}, k:{n:0,total:0,hist:[]} };
 function psInit(e){
-  const mk=(n,t,h)=>({ n:parseFloat(n)||0, total:parseFloat(t)||0, hist:Array.isArray(h)?h.slice():[] });
+  const conv=(h)=>{   // 履歴＝過去の状態{n,total}スタック。旧形式（枚数の数値配列）は累積変換
+    if(!Array.isArray(h)) return [];
+    if(h.length&&typeof h[0]==='number'){ const out=[]; let n=0,t=0; for(const u of h){ out.push({n,total:t}); n++; t+=u; } return out; }
+    return h.map(x=>({n:x.n||0,total:x.total||0}));
+  };
+  const mk=(n,t,h)=>({ n:parseFloat(n)||0, total:parseFloat(t)||0, hist:conv(h) });
   const unit=parseFloat(e.pushUnit)||((S[e.storeIdx||0]||{}).mp||46);   // 旧データはPUSH数×保存済み1PUSH枚数で補完
   PS={ s:mk(e.pushS, (e.storedTotal!=null?e.storedTotal:(parseFloat(e.pushS)||0)*unit), e.pushSHist),
        k:mk(e.pushK, (e.carryTotal!=null?e.carryTotal:(parseFloat(e.pushK)||0)*unit), e.pushKHist) };
@@ -2742,6 +2748,7 @@ function psView(kind){
   const st=PS[kind];
   const el=document.getElementById(kind==='s'?'psViewS':'psViewK'); if(!el) return;
   const step=el.closest('.pstep3');
+  el.closest('.pcard')?.classList.toggle('editing', psEdit[kind]);
   if(psEdit[kind]){
     step.classList.add('editing');
     const idT=kind==='s'?'fpsT':'fpkT', idN=kind==='s'?'fps':'fpk';
@@ -2752,11 +2759,11 @@ function psView(kind){
   }
 }
 window.pushStep2=function(kind,dir){
-  if(mlReadOnly) return;
+  if(mlReadOnly||psEdit[kind]) return;   // 編集中は戻す/PUSH無効（完了してから）
   const st=PS[kind];
   const unit=parseFloat(document.getElementById('fpu')?.value)||((S[0]||{}).mp||46);
-  if(dir>0){ st.n++; st.total+=unit; st.hist.push(unit); }
-  else if(st.n>0){ st.n--; st.total=Math.max(0, st.total-(st.hist.length?st.hist.pop():unit)); }   // 直前にPUSHした時の枚数で正確に戻す
+  if(dir>0){ st.hist.push({n:st.n,total:st.total}); st.n++; st.total+=unit; }   // 変更前の状態を履歴に積む
+  else { if(!st.hist.length) return; const prev=st.hist.pop(); st.n=prev.n; st.total=prev.total; }   // 履歴どおり一つ前の状態へ（計算なし）
   psView(kind); psArrow(kind==='s'?'psViewS':'psViewK', dir>0); mlCalc();
 };
 // PUSHした値が矢印に沿って左の合計へ入るイメージ（矢印が光って流れ、数字がパルス）
@@ -2780,6 +2787,7 @@ function psViewCash(){
   const n=parseFloat(document.getElementById('fpc')?.value)||0;
   const el=document.getElementById('psViewC'); if(!el) return;
   const step=el.closest('.pstep3');
+  el.closest('.pcard')?.classList.toggle('editing', psEdit.c);
   if(psEdit.c){
     step.classList.add('editing');
     el.innerHTML=`<div class="pinl"><span class="pinl-l">合計</span><input id="fpcT" type="number" inputmode="numeric" value="${n*1000||''}" oninput="psManualC('T')"><span class="pinl-l">円</span><span class="pinl-l pinl-g">PUSH</span><input id="fpcE" type="number" inputmode="numeric" value="${n||''}" oninput="psManualC('E')"><span class="pinl-l">回</span></div>`;
@@ -2794,9 +2802,15 @@ window.psManualC=function(which){
   else { const n2=parseFloat(document.getElementById('fpcE')?.value)||0; f.value=Math.max(0,n2); const t2=document.getElementById('fpcT'); if(t2&&document.activeElement!==t2) t2.value=f.value*1000; }
   mlCalc();
 };
+let psEditSnap={};   // 編集開始時点の状態（完了時に変化があれば履歴へ）
 window.togglePushEdit=function(kind){
   if(mlReadOnly) return;
   psEdit[kind]=!psEdit[kind];
+  if(kind!=='c'){
+    const st=PS[kind];
+    if(psEdit[kind]){ psEditSnap[kind]={n:st.n,total:st.total}; }
+    else { const sn=psEditSnap[kind]; if(sn&&(sn.n!==st.n||sn.total!==st.total)) st.hist.push(sn); }   // 変化していたら編集前を履歴に登録
+  }
   const btn=document.getElementById(kind==='s'?'psEditBtnS':kind==='k'?'psEditBtnK':'psEditBtnC');
   if(btn) btn.textContent=psEdit[kind]?'完了':'編集';
   if(kind==='c') psViewCash(); else psView(kind);
@@ -2806,7 +2820,6 @@ window.psManual=function(kind){
   const fn=document.getElementById(kind==='s'?'fps':'fpk'), ft=document.getElementById(kind==='s'?'fpsT':'fpkT');
   if(fn&&fn.value!=='') st.n=Math.max(0,parseFloat(fn.value)||0);
   if(ft&&ft.value!=='') st.total=Math.max(0,parseFloat(ft.value)||0);
-  st.hist=[];   // 手動編集後は履歴リセット（以後の戻すは現在の1PUSH枚数で減算）
   mlCalc();     // 表示の再描画は完了時（入力中のフォーカスを守る）
 };
 // ===== メダル受け渡し（記録に複数件ぶら下がる。相手＋枚数） =====
@@ -2872,6 +2885,7 @@ window.puSync=function(){   // fpuの値からプルダウンと入力欄の表�
   else { sel.value='custom'; el.style.display=''; }
 };
 window.pushStep=function(id,d){
+  if(id==='fpc'&&(mlReadOnly||psEdit.c)) return;   // 編集中は戻す/PUSH無効
   const el=document.getElementById(id); if(!el) return;
   const cur=parseInt(el.value)||0; el.value=Math.max(0,cur+d); mlCalc();
   if(id==='fpc'){ psViewCash(); psArrow('psViewC', d>0); }
