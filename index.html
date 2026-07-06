@@ -444,7 +444,10 @@ body.modal-open #wrap{overflow:hidden!important}
 .vhead .av{width:30px;height:30px;border-radius:50%;background:#1c1c1e;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;overflow:hidden;flex:none}
 .vhead .av img{width:100%;height:100%;object-fit:cover}
 .vhead .nm{font-size:15px;font-weight:600}
-.topbar{background:#000;border-bottom:none;padding:12px 16px 2px}
+.topbar{background:#000;border-bottom:none;padding:2px 16px 2px}
+.ctlfix .topbar{padding-top:0}
+.graphtgl{padding:2px 0 6px}
+.ctlfix .wlgraph{margin:2px 0 8px}
 .topbar-title{font-size:14px;color:var(--text-secondary);font-weight:500}
 .topbar-val{display:none}
 .mnav{color:var(--text-muted);font-size:18px}
@@ -1780,7 +1783,8 @@ function anaTrend(){
   }
 }
 window.anaSetMetric=function(m){ anaMetric=m; ra(); };
-let anaGraphMode='cum';   // 分析グラフの表示：cum/bar（折れ線は廃止）
+let anaGraphMode='cum', anaGraphOpen=false;   // 分析グラフの表示：cum/bar（折れ線は廃止）・開閉
+window.anaGraphToggle=function(){ anaGraphOpen=!anaGraphOpen; ra(); };
 window.anaGraphSet=function(m){ anaGraphMode=m; ra(); };
 window.anaSetBreak=function(b){ anaBreak=b; ra(); };
 window.anaOpenFilter=function(k){ anaFilterOpen=(anaFilterOpen===k)?null:k; ra(); };
@@ -1820,6 +1824,16 @@ function rAnalysis(container){
     ${anaFilterBar()}
     <div class="analbl">指標（見たい数字）</div>
     <div class="anaseg">${ANA_METRICS.map(([k,lab])=>`<button class="asg${anaMetric===k?' a':''}" onclick="anaSetMetric('${k}')">${lab}</button>`).join('')}</div>
+    ${trend?`<div class="graphtgl"><button class="tlink" onclick="anaGraphToggle()">${anaGraphOpen?'グラフを閉じる ▴':'グラフを表示 ▾'}</button></div>
+    ${anaGraphOpen?`<div class="wlgraph">
+      <div class="wlg-modes">
+        <button class="afpill${anaGraphMode==='cum'?' on':''}" onclick="anaGraphSet('cum')">累計</button>
+        <button class="afpill${anaGraphMode==='bar'?' on':''}" onclick="anaGraphSet('bar')">棒グラフ</button>
+        <span class="wlg-total"><span class="wlg-tlbl">${trend.unit}</span></span>
+      </div>
+      <div style="position:relative;width:100%;height:150px"><canvas id="anaCb" role="img" aria-label="推移グラフ"></canvas></div>
+      ${anaGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からの${metricLabel}の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ ${trend.unit.replace('別','')}ごとの${metricLabel}</div>`}
+    </div>`:''}`:''}
     </div>
     <div class="asec">
       <div class="acard">
@@ -1835,14 +1849,6 @@ function rAnalysis(container){
           ].filter(s=>s[0]!==anaMetric).map(s=>`<div class="ast"><div class="astl">${s[1]}</div><div class="astv ${s[2]}">${s[3]}</div></div>`).join('')}
         </div>
       </div>
-      ${trend?`<div class="acard"><div class="actitle">${metricLabel}の推移（${trend.unit}）</div>
-        <div class="wlg-modes" style="margin:8px 0">
-          <button class="afpill${anaGraphMode==='cum'?' on':''}" onclick="anaGraphSet('cum')">累計</button>
-          <button class="afpill${anaGraphMode==='bar'?' on':''}" onclick="anaGraphSet('bar')">棒グラフ</button>
-        </div>
-        <div style="position:relative;width:100%;height:170px"><canvas id="anaCb" role="img" aria-label="推移グラフ"></canvas></div>
-        ${anaGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からの${metricLabel}の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ ${trend.unit.replace('別','')}ごとの${metricLabel}</div>`}
-      </div>`:''}
       <div class="acard">
         <div class="actitle">内訳（何ごとに見るか）</div>
         <div class="anaseg sm">${ANA_BREAKS.map(([k,lab])=>`<button class="asg${anaBreak===k?' a':''}" onclick="anaSetBreak('${k}')">${lab}</button>`).join('')}</div>
@@ -2116,8 +2122,7 @@ function rWorkLog(container){
     ${prPeriodBar('wl')}
     ${wlFilterBar()}
     <div class="wlbar"><span class="wlcount">${rows.length}件</span><select class="ysel" onchange="wlSetSort(this.value)">${sortOpts}</select></div>
-    </div>
-    <div style="padding:0 0 2px"><button class="tlink" onclick="wlGraphToggle()">${wlGraphOpen?'グラフを閉じる ▴':'グラフを表示 ▾'}</button></div>
+    <div class="graphtgl"><button class="tlink" onclick="wlGraphToggle()">${wlGraphOpen?'グラフを閉じる ▴':'グラフを表示 ▾'}</button></div>
     ${wlGraphOpen?(()=>{
       let tot=0,cnt=0; rows.forEach(l=>{const v=mlVals(l); if(v.hasEnd){tot+=v.daiYen||0;cnt++;}});
       return `
@@ -2127,9 +2132,10 @@ function rWorkLog(container){
         <button class="afpill${wlGraphMode==='bar'?' on':''}" onclick="wlGraphSet('bar')">棒グラフ</button>
         <span class="wlg-total"><span class="wlg-tlbl">合計（${cnt}件）</span><span class="${c(tot)}">${f(tot)}</span></span>
       </div>
-      <div style="height:170px"><canvas id="wlCb"></canvas></div>
+      <div style="height:150px"><canvas id="wlCb"></canvas></div>
       ${wlGraphMode==='cum'?`<div class="wlg-note">累計 ＝ 表示中の期間の最初からその日までの実収支の合計（期間内の通算推移）</div>`:`<div class="wlg-note">縦軸 ＝ その日の実収支</div>`}
     </div>`;})():''}
+    </div>
     <div class="asec">
       ${rows.length===0?'<div style="padding:30px 0;text-align:center;color:var(--text-muted);font-size:13px">該当する稼働記録がありません</div>':(rowsP.length?`<div class="mev-seclbl playing" style="border-top:none;margin-top:0">遊技中</div><div class="wllist">${rowsP.map(wlRow).join('')}</div>${rowsD.length?`<div class="mev-seclbl">確定済み</div><div class="wllist">${rowsD.map(wlRow).join('')}</div>`:''}`:`<div class="wllist">${rowsD.map(wlRow).join('')}</div>`)}
     </div>`;
@@ -2857,7 +2863,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260706-222330';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260707-010610';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
