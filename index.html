@@ -1158,12 +1158,12 @@ function dtFromLocalVal(v){ if(!v) return null; const m=String(v).match(/^(\d{4}
 // 日時入力（ネイティブ datetime-local ピッカー。表示テキストはこちらで整形して別途出す）
 function dtInputHtml(idBase, val){
   const o=dtFromStr(val);
-  return `<input type="datetime-local" class="dtfield" id="${idBase}" value="${o?dtToLocalVal(o):''}" oninput="if(typeof mlCalc==='function')mlCalc()">`;
+  return `<input type="datetime-local" class="dtfield" id="${idBase}" value="${o?dtToLocalVal(o):''}" oninput="fhrManual=false;if(typeof mlCalc==='function')mlCalc()">`;
 }
 // 入力値を 2026/7/9 19:16 文字列で読む（未入力→''、不正→null）
 function dtReadInput(idBase){ const el=document.getElementById(idBase); if(!el) return ''; const raw=(el.value||'').trim(); if(!raw) return ''; const o=dtFromLocalVal(raw); return o?dtToStr(o):null; }
 // 「現在時刻を入れる」ボタン
-window.dtSetNow=function(idBase){ const el=document.getElementById(idBase); if(el){ el.value=dtToLocalVal(dtNow()); el.classList.remove('invalid'); } if(typeof mlCalc==='function') mlCalc(); };
+window.dtSetNow=function(idBase){ const el=document.getElementById(idBase); if(el){ el.value=dtToLocalVal(dtNow()); el.classList.remove('invalid'); } fhrManual=false; if(typeof mlCalc==='function') mlCalc(); };
 // 行内の閲覧⇄編集トグル（日時・稼働時間で使用）。テキスト表示と入力欄を切替
 window.mlRowEdit=function(key){ const w=document.getElementById('rw_'+key); if(!w) return; w.classList.add('editing'); const inp=w.querySelector('.rw-edit input,.rw-edit .dtfield'); if(inp){
     if(inp.type==='datetime-local' && !inp.value){ inp.value=dtToLocalVal(dtNow()); if(typeof mlCalc==='function') mlCalc(); }   // 空ならピッカーの起点として現在時刻
@@ -2944,7 +2944,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-202511';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-203109';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
