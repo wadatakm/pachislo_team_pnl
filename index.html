@@ -225,6 +225,8 @@ html,body{background:#000;height:100%;overflow:hidden;overscroll-behavior:none}
 .dtnow:active{background:rgba(0,224,138,.26)}
 .dtnow svg{width:13px;height:13px;display:block;flex-shrink:0}
 .hrsub{font-size:10px;color:var(--text-muted);margin-top:3px}
+.hrsub.warn{color:#ff8a5c}
+.warntext{color:#ff8a5c;font-size:13px}
 .mh.noline{border-bottom:none}
 #mlbackbar .tlink{font-size:13px;font-weight:600;padding:0;text-align:left}
 .viewscroll>.asec:last-child, .viewscroll>div>.asec:last-child{padding-bottom:110px}
@@ -1142,7 +1144,7 @@ function dtFromStr(s){ if(!s) return null; const m=String(s).match(/^(\d{4})\/(\
 function dtToStr(o){ if(!o) return ''; return `${o.y}/${o.mo}/${o.d} ${o.h}:${String(o.mi).padStart(2,'0')}`; }
 function dtToMs(o){ if(!o) return null; return new Date(o.y,o.mo-1,o.d,o.h,o.mi,0).getTime(); }
 // 開始・終了から稼働時間（h・小数1桁）を算出。負や欠損はnull
-function hoursFromStartEnd(startAt,endAt){ const a=dtToMs(dtFromStr(startAt)), b=dtToMs(dtFromStr(endAt)); if(a==null||b==null||b<=a) return null; return Math.round((b-a)/3600000*10)/10; }
+function hoursFromStartEnd(startAt,endAt){ const a=dtToMs(dtFromStr(startAt)), b=dtToMs(dtFromStr(endAt)); if(a==null||b==null||b<a) return null; if(b===a) return 0; const h=(b-a)/3600000; return h<=0.1?0.1:Math.round(h*10)/10; }   // 逆転はnull、同時刻は0h、6分以下は0.1h
 // 日時入力（単一テキスト。数字を打つと区切りを自動補完。iOSズーム防止のため16px）
 // 二段構えの行HTML：ラベル｜テキスト表示＋(viewExtra)＋編集ボタン／編集時は入力欄＋完了。viewExtraは編集前に置く追加ボタン
 function rwRowHtml(key,label,text,editHtml,viewExtra){
@@ -1177,9 +1179,18 @@ function mlRefreshRowText(){
   set('fstart', sAt?mlEsc(sAt):'<span class="vmut">未設定</span>');
   set('fend', eAt?mlEsc(eAt):'<span class="vmut">未設定</span>');
   const hr=document.getElementById('fhr'); const hv=hr?hr.value:'';
-  const auto=(sAt&&eAt)?hoursFromStartEnd(sAt,eAt):null;
+  const both=!!(sAt&&eAt);
+  const auto=both?hoursFromStartEnd(sAt,eAt):null;
+  const badOrder=both&&auto==null;   // 逆転（終了が開始より前）
   const mode=(!fhrManual&&auto!=null)?'（自動計算）':'（手入力）';
-  set('fhr', hv!==''?parseFloat(hv)+'h <span class="vmut" style="font-size:10px">'+mode+'</span>':'<span class="vmut">未設定</span>');
+  const sub=document.getElementById('fhrSub');
+  if(badOrder){
+    set('fhr','<span class="vmut">未計算</span>');
+    if(sub){ sub.textContent='終了が開始より前です'; sub.classList.add('warn'); }
+  }else{
+    set('fhr', hv!==''?parseFloat(hv)+'h <span class="vmut" style="font-size:10px">'+mode+'</span>':'<span class="vmut">未設定</span>');
+    if(sub){ sub.textContent=''; sub.classList.remove('warn'); }
+  }
 }
 
 // ============================================================
@@ -2944,7 +2955,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-203109';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-210141';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
@@ -3203,12 +3214,18 @@ window.cancelSec=function(sec){ restoreSec(sec); setLock(sec,true); applyMLLocks
 window.sPTm=function(t){ document.getElementById('rs').className='ro'+(t==='setting'?' sel':''); document.getElementById('re').className='ro'+(t==='ev'?' sev sel':''); const er=document.getElementById('evRow'); if(er) er.style.display=(t==='ev'?'':'none'); const egc=document.getElementById('cEvGapCell'); if(egc) egc.style.display=(t==='ev'?'':'none'); if(typeof mlCalc==='function') mlCalc(); };
 window.mlCalc=function(){
   const f=curForm();
-  // 稼働時間：開始/終了日時が揃い、手入力していなければ自動計算
+  // 稼働時間：開始/終了日時が揃い、手入力していなければ自動計算。逆転/同時刻は注意表示
   { const hr=document.getElementById('fhr'), sub=document.getElementById('fhrSub');
     if(hr){ const sAt=dtReadInput('fstart'), eAt=dtReadInput('fend');
-      const auto=(sAt&&eAt)?hoursFromStartEnd(sAt,eAt):null;
-      if(!fhrManual){ if(auto!=null){ hr.value=auto; if(sub) sub.textContent='開始・終了から自動計算'; } else { if(sub) sub.textContent=hr.value!==''?'手入力':''; } }
-      else { if(sub) sub.textContent='手入力'+(auto!=null?`（自動なら ${auto}h）`:''); }
+      const both=!!(sAt&&eAt);
+      const auto=both?hoursFromStartEnd(sAt,eAt):null;
+      const badOrder=both&&auto==null;   // 両方入力済みなのに算出不可＝終了が開始以前
+      if(!fhrManual){
+        if(auto!=null){ hr.value=auto; if(sub){ sub.textContent='自動計算'; sub.classList.remove('warn'); } }
+        else if(badOrder){ hr.value=''; if(sub){ sub.textContent='終了が開始より前です'; sub.classList.add('warn'); } }
+        else { if(sub){ sub.textContent=hr.value!==''?'手入力':''; sub.classList.remove('warn'); } }
+      }
+      else { if(sub){ sub.textContent='手入力'+(auto!=null?`（自動なら ${auto}h）`:''); sub.classList.remove('warn'); } }
     } }
   if(typeof mlRefreshRowText==='function') mlRefreshRowText();   // 二段構え行のテキスト表示を同期
   // 遊技中のPUSHサブ表示（現金＝円と枚、貯メ/持ちメ＝枚）
