@@ -1160,7 +1160,7 @@ function dtFromLocalVal(v){ if(!v) return null; const m=String(v).match(/^(\d{4}
 // 日時入力（ネイティブ datetime-local ピッカー。表示テキストはこちらで整形して別途出す）
 function dtInputHtml(idBase, val){
   const o=dtFromStr(val);
-  return `<input type="datetime-local" class="dtfield" id="${idBase}" value="${o?dtToLocalVal(o):''}" oninput="fhrManual=false;if(typeof mlCalc==='function')mlCalc()">`;
+  return `<input type="datetime-local" class="dtfield" id="${idBase}" value="${o?dtToLocalVal(o):''}" oninput="fhrManual=false;if(typeof mlCalc==='function')mlCalc()" onchange="fhrManual=false;if(typeof mlCalc==='function')mlCalc()">`;
 }
 // 入力値を 2026/7/9 19:16 文字列で読む（未入力→''、不正→null）
 function dtReadInput(idBase){ const el=document.getElementById(idBase); if(!el) return ''; const raw=(el.value||'').trim(); if(!raw) return ''; const o=dtFromLocalVal(raw); return o?dtToStr(o):null; }
@@ -2955,7 +2955,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-210141';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-210951';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
