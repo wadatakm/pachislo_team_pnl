@@ -1171,7 +1171,9 @@ window.mlRowEdit=function(key){ const w=document.getElementById('rw_'+key); if(!
     if(inp.type==='datetime-local' && !inp.value){ inp.value=dtToLocalVal(dtNow()); if(typeof mlCalc==='function') mlCalc(); }   // 空ならピッカーの起点として現在時刻
     try{ inp.focus(); }catch(_){}
   } };
-window.mlRowDone=function(key){ const w=document.getElementById('rw_'+key); if(!w) return; w.classList.remove('editing'); if(typeof mlCalc==='function') mlCalc(); mlRefreshRowText(); };
+window.mlRowDone=function(key){ const w=document.getElementById('rw_'+key); if(!w) return; w.classList.remove('editing');
+  if(key==='fhr'){ const hr=document.getElementById('fhr'); if(hr && hr.value.trim()!=='') fhrManual=true; }   // 稼働時間を手入力して完了＝手入力を優先（日時を変えるまで維持）
+  if(typeof mlCalc==='function') mlCalc(); mlRefreshRowText(); };
 // テキスト表示を最新入力から更新
 function mlRefreshRowText(){
   const sAt=dtReadInput('fstart'), eAt=dtReadInput('fend');
@@ -2955,7 +2957,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-214705';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-230623';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
