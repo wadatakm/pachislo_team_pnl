@@ -2839,7 +2839,7 @@ window.oForm=function(mid,day,editId,ro){
       <div class="secedit" id="editEn">
         <div class="fr"><label class="fl">終了時持ちメダル（枚）</label><input id="fem" type="number" inputmode="numeric" placeholder="例 3500" value="${e.endMedal!=null?e.endMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('femErr');if(_e)_e.style.display='none';mlCalc()"><div id="femErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には終了時持ちメダルの入力が必要です（途中なら「遊技中」で保存）</div></div>
         ${rwRowHtml('fend','終了日時 — 任意', e.endAt?mlEsc(e.endAt):'<span class="vmut">未設定</span>', dtInputHtml('fend', e.endAt||''), `<button type="button" class="dtnow" onclick="dtSetNow('fend')">${CLOCK_SVG}自動取得</button>`)}
-        ${rwRowHtml('fhr','稼働時間（h）', (e.hours?parseFloat(e.hours)+'h':'<span class="vmut">未設定</span>'), `<input id="fhr" type="number" inputmode="decimal" step="0.5" placeholder="例 3.5" value="${e.hours||''}" oninput="fhrManual=true;mlCalc()">`)}
+        ${rwRowHtml('fhr','稼働時間（h）', (e.hours?parseFloat(e.hours)+'h':'<span class="vmut">未設定</span>'), `<input id="fhr" type="text" inputmode="decimal" placeholder="例 3.5" value="${e.hours||''}" oninput="this.value=this.value.replace(/[^0-9.]/g,'');fhrManual=true;mlCalc()">`)}
         <div class="hrsub" id="fhrSub"></div>
         <div id="jgEnd" style="${e.jug?'':'display:none'}">
           <div class="jglbl">ジャグラー — 終了時</div>
@@ -2955,7 +2955,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-210951';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-211557';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
