@@ -207,13 +207,23 @@ html,body{background:#000;height:100%;overflow:hidden;overscroll-behavior:none}
 .mchit{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:0.5px solid var(--border);color:var(--text-primary);font-size:14px;padding:12px;margin:0;cursor:pointer;word-break:break-word;border-radius:0}
 .mchit:last-child{border-bottom:none}
 #mlbackbar{flex-shrink:0;background:#0e0e10;padding:2px 14px 8px;border-bottom:0.5px solid var(--border)}
-.dtinput{display:inline-flex;align-items:center;gap:1px;background:var(--surface-1);border:0.5px solid var(--border-strong);border-radius:8px;padding:7px 10px}
-.dtinput .dtseg{background:none;border:none;color:var(--text);font-size:15px;text-align:center;padding:0;font-variant-numeric:tabular-nums}
-.dtinput .dtseg:focus{outline:none;color:var(--text-success)}
-.dtinput .dtseg.invalid{color:#ff6b6b}
-.dtinput .dtsp{color:var(--text-muted);font-size:15px}
-.dtrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dtnow{background:var(--bg-accent);color:var(--text-success);border:0.5px solid var(--border-strong);border-radius:8px;font-size:12px;font-weight:600;padding:7px 10px;cursor:pointer;white-space:nowrap}
+.dtfield{width:100%;background:var(--surface-1);border:0.5px solid var(--border-strong);border-radius:8px;padding:9px 11px;color:var(--text);font-size:16px;font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none}
+.dtfield:focus{outline:none;border-color:var(--text-success)}
+.dtfield.invalid{border-color:#ff6b6b}
+.rw{display:block}
+.rw>.fl{display:block}
+.rw .rw-editbtn{display:inline-block;background:none;border:none;color:var(--text-success);font-size:12px;font-weight:600;padding:2px 0;margin-top:2px;cursor:pointer}
+.rw .rw-view{margin-top:2px}
+.rw .rw-line{display:flex;align-items:center;gap:8px;margin-top:3px}
+.rw .rw-text{font-size:14px;flex:1;min-width:0}
+.rw .rw-donebtn{background:none;border:none;color:var(--text-success);font-size:12px;font-weight:600;padding:2px 4px;cursor:pointer;white-space:nowrap}
+.rw .rw-edit{display:none;align-items:center;gap:8px;margin-top:5px}
+.rw .rw-edit .dtfield,.rw .rw-edit input{flex:1;min-width:0}
+.rw.editing .rw-view{display:none}
+.rw.editing .rw-edit{display:flex}
+.dtnow{display:inline-flex;align-items:center;gap:5px;background:rgba(0,224,138,.14);color:var(--text-success);border:0.5px solid rgba(0,224,138,.5);border-radius:8px;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;white-space:nowrap;transition:background .12s}
+.dtnow:active{background:rgba(0,224,138,.26)}
+.dtnow svg{width:13px;height:13px;display:block;flex-shrink:0}
 .hrsub{font-size:10px;color:var(--text-muted);margin-top:3px}
 .mh.noline{border-bottom:none}
 #mlbackbar .tlink{font-size:13px;font-weight:600;padding:0;text-align:left}
@@ -1133,35 +1143,44 @@ function dtToStr(o){ if(!o) return ''; return `${o.y}/${o.mo}/${o.d} ${o.h}:${St
 function dtToMs(o){ if(!o) return null; return new Date(o.y,o.mo-1,o.d,o.h,o.mi,0).getTime(); }
 // 開始・終了から稼働時間（h・小数1桁）を算出。負や欠損はnull
 function hoursFromStartEnd(startAt,endAt){ const a=dtToMs(dtFromStr(startAt)), b=dtToMs(dtFromStr(endAt)); if(a==null||b==null||b<=a) return null; return Math.round((b-a)/3600000*10)/10; }
-// 数字だけ編集できる日時入力のHTML（各桁を個別inputに。区切りは固定テキスト）
+// 日時入力（単一テキスト。数字を打つと区切りを自動補完。iOSズーム防止のため16px）
+// 二段構えの行HTML：ラベル｜テキスト表示＋(viewExtra)＋編集ボタン／編集時は入力欄＋完了。viewExtraは編集前に置く追加ボタン
+function rwRowHtml(key,label,text,editHtml,viewExtra){
+  return `<div class="fr rw" id="rw_${key}">`
+    + `<label class="fl">${label}</label>`
+    + `<div class="rw-view"><button type="button" class="rw-editbtn" onclick="mlRowEdit('${key}')">編集</button><div class="rw-line"><span class="rw-text" id="rwt_${key}">${text}</span>${viewExtra||''}</div></div>`
+    + `<div class="rw-edit">${editHtml}<button type="button" class="rw-donebtn" onclick="mlRowDone('${key}')">完了</button></div>`
+    + `</div>`;
+}
+const CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
+function dtToLocalVal(o){ if(!o) return ''; const p=n=>String(n).padStart(2,'0'); return `${o.y}-${p(o.mo)}-${p(o.d)}T${p(o.h)}:${p(o.mi)}`; }
+function dtFromLocalVal(v){ if(!v) return null; const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/); if(!m) return null; return {y:+m[1],mo:+m[2],d:+m[3],h:+m[4],mi:+m[5]}; }
+// 日時入力（ネイティブ datetime-local ピッカー。表示テキストはこちらで整形して別途出す）
 function dtInputHtml(idBase, val){
-  const o=dtFromStr(val)||null;
-  const seg=(k,ph,mx,w)=>`<input class="dtseg" id="${idBase}_${k}" inputmode="numeric" maxlength="${mx}" style="width:${w}" placeholder="${ph}" value="${o?(k==='mi'?String(o[k]).padStart(2,'0'):o[k]):''}" oninput="dtSegIn('${idBase}','${k}',this)">`;
-  return `<div class="dtinput" id="${idBase}">`
-    + seg('y','2026',4,'4.2ch')+`<span class="dtsp">/</span>`
-    + seg('mo','7',2,'2.2ch')+`<span class="dtsp">/</span>`
-    + seg('d','9',2,'2.2ch')+`<span class="dtsp"> </span>`
-    + seg('h','19',2,'2.2ch')+`<span class="dtsp">:</span>`
-    + seg('mi','16',2,'2.2ch')+`</div>`;
+  const o=dtFromStr(val);
+  return `<input type="datetime-local" class="dtfield" id="${idBase}" value="${o?dtToLocalVal(o):''}" oninput="if(typeof mlCalc==='function')mlCalc()">`;
 }
-// 桁入力：数字以外を除去し、埋まったら次の桁へフォーカス
-window.dtSegIn=function(idBase,k,el){ el.value=el.value.replace(/[^0-9]/g,''); el.classList.remove('invalid');
-  const order=['y','mo','d','h','mi'], max={y:4,mo:2,d:2,h:2,mi:2};
-  if(el.value.length>=max[k]){ const i=order.indexOf(k); if(i<order.length-1){ const nx=document.getElementById(idBase+'_'+order[i+1]); if(nx) nx.focus(); } }
-  if(typeof mlCalc==='function') mlCalc();
-};
-// 入力値を文字列化（未入力や不正はnull）
-function dtReadInput(idBase){ const g=k=>{const el=document.getElementById(idBase+'_'+k);return el?el.value.trim():'';};
-  const y=g('y'),mo=g('mo'),d=g('d'),h=g('h'),mi=g('mi');
-  if(!y&&!mo&&!d&&!h&&!mi) return '';   // 全空＝未設定
-  if(!(y&&mo&&d&&h!==''&&mi!=='')) return null;   // 一部だけ＝不正
-  const oy=+y,omo=+mo,od=+d,oh=+h,omi=+mi;
-  if(omo<1||omo>12||od<1||od>31||oh>23||omi>59) return null;
-  return `${oy}/${omo}/${od} ${oh}:${String(omi).padStart(2,'0')}`;
-}
+// 入力値を 2026/7/9 19:16 文字列で読む（未入力→''、不正→null）
+function dtReadInput(idBase){ const el=document.getElementById(idBase); if(!el) return ''; const raw=(el.value||'').trim(); if(!raw) return ''; const o=dtFromLocalVal(raw); return o?dtToStr(o):null; }
 // 「現在時刻を入れる」ボタン
-window.dtSetNow=function(idBase){ const n=dtNow(); const set=(k,v)=>{const el=document.getElementById(idBase+'_'+k);if(el)el.value=(k==='mi'?String(v).padStart(2,'0'):String(v));};
-  set('y',n.y);set('mo',n.mo);set('d',n.d);set('h',n.h);set('mi',n.mi); if(typeof mlCalc==='function') mlCalc(); };
+window.dtSetNow=function(idBase){ const el=document.getElementById(idBase); if(el){ el.value=dtToLocalVal(dtNow()); el.classList.remove('invalid'); } if(typeof mlCalc==='function') mlCalc(); };
+// 行内の閲覧⇄編集トグル（日時・稼働時間で使用）。テキスト表示と入力欄を切替
+window.mlRowEdit=function(key){ const w=document.getElementById('rw_'+key); if(!w) return; w.classList.add('editing'); const inp=w.querySelector('.rw-edit input,.rw-edit .dtfield'); if(inp){
+    if(inp.type==='datetime-local' && !inp.value){ inp.value=dtToLocalVal(dtNow()); if(typeof mlCalc==='function') mlCalc(); }   // 空ならピッカーの起点として現在時刻
+    try{ inp.focus(); }catch(_){}
+  } };
+window.mlRowDone=function(key){ const w=document.getElementById('rw_'+key); if(!w) return; w.classList.remove('editing'); if(typeof mlCalc==='function') mlCalc(); mlRefreshRowText(); };
+// テキスト表示を最新入力から更新
+function mlRefreshRowText(){
+  const sAt=dtReadInput('fstart'), eAt=dtReadInput('fend');
+  const set=(key,txt)=>{const el=document.getElementById('rwt_'+key); if(el) el.innerHTML=txt;};
+  set('fstart', sAt?mlEsc(sAt):'<span class="vmut">未設定</span>');
+  set('fend', eAt?mlEsc(eAt):'<span class="vmut">未設定</span>');
+  const hr=document.getElementById('fhr'); const hv=hr?hr.value:'';
+  const auto=(sAt&&eAt)?hoursFromStartEnd(sAt,eAt):null;
+  const mode=(!fhrManual&&auto!=null)?'（自動計算）':'（手入力）';
+  set('fhr', hv!==''?parseFloat(hv)+'h <span class="vmut" style="font-size:10px">'+mode+'</span>':'<span class="vmut">未設定</span>');
+}
 
 // ============================================================
 function f(v){v=Math.round(v);if(v===0)return'±0';return(v>0?'+':'')+v.toLocaleString()}   // 表示は整数（内部は小数保持）
@@ -2740,7 +2759,7 @@ window.oForm=function(mid,day,editId,ro){
         </div>
         <div class="fr"><label class="fl">台番 — 任意</label><input id="fno" type="text" inputmode="numeric" placeholder="例 123" value="${e.machineNo?mlEsc(e.machineNo):''}"></div>
         <div class="fr"><label class="fl">開始時持ちメダル（枚）</label><input id="fsm" type="number" inputmode="numeric" placeholder="0" value="${e.startMedal??''}" oninput="mlCalc()"></div>
-        <div class="fr"><label class="fl">開始日時 — 任意</label><div class="dtrow">${dtInputHtml('fstart', e.startAt||'')}<button type="button" class="dtnow" onclick="dtSetNow('fstart')">現在時刻</button></div></div>
+        ${rwRowHtml('fstart','開始日時 — 任意', e.startAt?mlEsc(e.startAt):'<span class="vmut">未設定</span>', dtInputHtml('fstart', e.startAt||''), `<button type="button" class="dtnow" onclick="dtSetNow('fstart')">${CLOCK_SVG}自動取得</button>`)}
         <div id="jgStart" style="${e.jug?'':'display:none'}">
           <div class="jgrid3">
             <div class="fr"><label class="fl">前任 総回転</label><input id="jss" type="number" inputmode="numeric" placeholder="0" value="${e.jSpinS??''}" oninput="mlCalc()"></div>
@@ -2808,8 +2827,9 @@ window.oForm=function(mid,day,editId,ro){
       <div class="secview" id="viewEn"></div>
       <div class="secedit" id="editEn">
         <div class="fr"><label class="fl">終了時持ちメダル（枚）</label><input id="fem" type="number" inputmode="numeric" placeholder="例 3500" value="${e.endMedal!=null?e.endMedal:''}" oninput="this.classList.remove('invalid');const _e=document.getElementById('femErr');if(_e)_e.style.display='none';mlCalc()"><div id="femErr" style="display:none;color:#ff6b6b;font-size:11px;margin-top:4px">保存には終了時持ちメダルの入力が必要です（途中なら「遊技中」で保存）</div></div>
-        <div class="fr"><label class="fl">終了日時 — 任意</label><div class="dtrow">${dtInputHtml('fend', e.endAt||'')}<button type="button" class="dtnow" onclick="dtSetNow('fend')">現在時刻</button></div></div>
-        <div class="fr"><label class="fl">稼働時間（h）</label><input id="fhr" type="number" inputmode="decimal" step="0.5" placeholder="例 3.5" value="${e.hours||''}" oninput="fhrManual=true;mlCalc()"><div class="hrsub" id="fhrSub"></div></div>
+        ${rwRowHtml('fend','終了日時 — 任意', e.endAt?mlEsc(e.endAt):'<span class="vmut">未設定</span>', dtInputHtml('fend', e.endAt||''), `<button type="button" class="dtnow" onclick="dtSetNow('fend')">${CLOCK_SVG}自動取得</button>`)}
+        ${rwRowHtml('fhr','稼働時間（h）', (e.hours?parseFloat(e.hours)+'h':'<span class="vmut">未設定</span>'), `<input id="fhr" type="number" inputmode="decimal" step="0.5" placeholder="例 3.5" value="${e.hours||''}" oninput="fhrManual=true;mlCalc()">`)}
+        <div class="hrsub" id="fhrSub"></div>
         <div id="jgEnd" style="${e.jug?'':'display:none'}">
           <div class="jglbl">ジャグラー — 終了時</div>
           <div class="jgrid3">
@@ -2924,7 +2944,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-193410';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-202511';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
@@ -3103,12 +3123,12 @@ function vnum(v,unit){ if(v===''||v==null||isNaN(parseFloat(v))) return '<span c
 function applyMLLocks(){
   const f=curForm();
   // 開始時
-  document.getElementById('viewSt').innerHTML=vrow('稼働タイプ',f.playType==='ev'?'<span class="ebadge ev" style="font-size:10px;padding:2px 8px">期待値稼働</span>':'<span class="ebadge st" style="font-size:10px;padding:2px 8px">設定狙い</span>')+(f.playType==='ev'?vrow('期待値',f.ev?parseFloat(f.ev).toLocaleString()+'円':'<span class="vmut">未入力</span>'):'')+vrow('店舗',S[f.storeIdx]?.name||'—')+vrow('機種名',f.machine?mlEsc(f.machine):'<span class="vmut">未入力</span>')+vrow('台番',f.machineNo?mlEsc(f.machineNo):'<span class="vmut">未入力</span>')+vrow('開始時持ちメダル',vnum(f.startMedal,'枚'))+vrow('開始日時',f.startAt?mlEsc(f.startAt):'<span class="vmut">未入力</span>')+(f.jug?vrow('ジャグラーモード','<span class="ebadge st" style="font-size:10px;padding:2px 8px">ON</span>')+vrow('前任 回転/BIG/REG',`${vnum(f.jSpinS)} / ${vnum(f.jBigS)} / ${vnum(f.jRegS)}`):'');
+  document.getElementById('viewSt').innerHTML=vrow('稼働タイプ',f.playType==='ev'?'<span class="ebadge ev" style="font-size:10px;padding:2px 8px">期待値稼働</span>':'<span class="ebadge st" style="font-size:10px;padding:2px 8px">設定狙い</span>')+(f.playType==='ev'?vrow('期待値',f.ev?parseFloat(f.ev).toLocaleString()+'円':'<span class="vmut">未入力</span>'):'')+vrow('店舗',S[f.storeIdx]?.name||'—')+vrow('機種名',f.machine?mlEsc(f.machine):'<span class="vmut">未入力</span>')+vrow('台番',f.machineNo?mlEsc(f.machineNo):'<span class="vmut">未入力</span>')+vrow('開始時持ちメダル',vnum(f.startMedal,'枚'))+vrow('開始日時',f.startAt?mlEsc(f.startAt):'<span class="vmut">未設定</span>')+(f.jug?vrow('ジャグラーモード','<span class="ebadge st" style="font-size:10px;padding:2px 8px">ON</span>')+vrow('前任 回転/BIG/REG',`${vnum(f.jSpinS)} / ${vnum(f.jBigS)} / ${vnum(f.jRegS)}`):'');
   const _mp=(S[f.storeIdx]||{}).mp||46;
   const _pu=parseFloat(f.pushUnit)||_mp;
   const pushV=(v,extra)=>{ const n=parseFloat(v); if(v===''||v==null||isNaN(n)) return '<span class="vmut">未入力</span>'; return `${n}PUSH <span class="vmut">（${extra(n)}）</span>`; };
   document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',(f.pushS>0||f.storedTotal>0)?`${f.pushS}PUSH <span class="vmut">（${Math.round(f.storedTotal||0).toLocaleString()}枚）</span>`:'<span class="vmut">未入力</span>')+vrow('持ちメダル投資（記録用）',(f.pushK>0||f.carryTotal>0)?`${f.pushK}PUSH <span class="vmut">（${Math.round(f.carryTotal||0).toLocaleString()}枚）</span>`:'<span class="vmut">未入力</span>')+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メダル用）</div>`;
-  document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('終了日時',f.endAt?mlEsc(f.endAt):'<span class="vmut">未入力</span>')+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h'+((f.startAt&&f.endAt)?' <span class="vmut" style="font-size:10px">（自動計算）</span>':' <span class="vmut" style="font-size:10px">（手入力）</span>'):'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
+  document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('終了日時',f.endAt?mlEsc(f.endAt):'<span class="vmut">未設定</span>')+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h'+((f.startAt&&f.endAt)?' <span class="vmut" style="font-size:10px">（自動計算）</span>':' <span class="vmut" style="font-size:10px">（手入力）</span>'):'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
   const memoTxt=f.memo?mlEsc(f.memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>';
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
   const sw=(view,edit,locked)=>{const v=document.getElementById(view),ed=document.getElementById(edit);if(v)v.style.display=locked?'block':'none';if(ed)ed.style.display=locked?'none':'block';};
@@ -3190,6 +3210,7 @@ window.mlCalc=function(){
       if(!fhrManual){ if(auto!=null){ hr.value=auto; if(sub) sub.textContent='開始・終了から自動計算'; } else { if(sub) sub.textContent=hr.value!==''?'手入力':''; } }
       else { if(sub) sub.textContent='手入力'+(auto!=null?`（自動なら ${auto}h）`:''); }
     } }
+  if(typeof mlRefreshRowText==='function') mlRefreshRowText();   // 二段構え行のテキスト表示を同期
   // 遊技中のPUSHサブ表示（現金＝円と枚、貯メ/持ちメ＝枚）
   { const _mp=(S[f.storeIdx]||{}).mp||46; const pn=v=>parseFloat(v)||0; const _pu=pn(f.pushUnit)||_mp;
     const el=(id,t)=>{const e2=document.getElementById(id); if(e2)e2.textContent=t;};
