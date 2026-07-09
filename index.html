@@ -2735,7 +2735,8 @@ window.oForm=function(mid,day,editId,ro){
   }
   const isEdit=!!e; e=e||{};
   // 稼働時間モード：開始/終了日時が揃っていれば自動計算、そうでなく既に稼働時間があれば手入力。既存データ（日時なし＋hoursあり）は手入力扱い
-  fhrManual = !(e.startAt && e.endAt) && (e.hours!=null && e.hours!=='' && +e.hours>0);
+  // 稼働時間モード：保存済みhoursManualがあれば尊重。無ければ従来判定（既存データ＝日時なし＋hoursあり→手入力扱い）
+  fhrManual = (e.hoursManual!=null) ? !!e.hoursManual : (!(e.startAt && e.endAt) && (e.hours!=null && e.hours!=='' && +e.hours>0));
   const playing=isEdit && (e.playing===true || e.endMedal==null||e.endMedal==='');   // 遊技中保存 or 終了時持ちメダル未入力＝遊技中
   mlStartLock=isEdit||mlReadOnly; mlPlayLock=!(playing&&!mlReadOnly); mlEndLock=true; mlMemoLock=isEdit||mlReadOnly; // 遊技中の記録は遊技中フェーズをデフォ展開
   document.getElementById('mtitle').innerHTML=`${avatarMini(mid)}${mlEsc(N[mid])} — ${cm+1}/${day} 台記録${mlReadOnly?'（閲覧）':''}`;
@@ -2898,7 +2899,7 @@ window.oForm=function(mid,day,editId,ro){
 function curForm(){
   const g=id=>document.getElementById(id); let si=parseInt(g('fst')?.value); if(isNaN(si)||si<0||si>=S.length) si=0;
   const jug=!!document.getElementById('jgSw')?.classList.contains('on');
-  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', startMedal:g('fsm')?.value, startAt:(dtReadInput('fstart')||null), endAt:(dtReadInput('fend')||null), pushC:g('fpc')?.value, pushS:PS.s.n, storedTotal:PS.s.total, pushSHist:PS.s.hist.slice(), pushK:PS.k.n, carryTotal:PS.k.total, pushKHist:PS.k.hist.slice(), pushUnit:g('fpu')?.value, handoffs:curHandoffs(), endMedal:g('fem')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
+  return {playType:g('re')?.classList.contains('sel')?'ev':'setting', ev:g('fev')?.value, storeIdx:si, machine:g('fmc')?.value||'', machineNo:g('fno')?.value||'', startMedal:g('fsm')?.value, startAt:(dtReadInput('fstart')||null), endAt:(dtReadInput('fend')||null), hoursManual:!!fhrManual, pushC:g('fpc')?.value, pushS:PS.s.n, storedTotal:PS.s.total, pushSHist:PS.s.hist.slice(), pushK:PS.k.n, carryTotal:PS.k.total, pushKHist:PS.k.hist.slice(), pushUnit:g('fpu')?.value, handoffs:curHandoffs(), endMedal:g('fem')?.value, hours:g('fhr')?.value, memo:g('fmm')?.value||'',
     jug, jSpinS:g('jss')?.value, jBigS:g('jbs')?.value, jRegS:g('jrs')?.value,
     jSpinE:g('jse')?.value, jBigE:g('jbe')?.value, jRegE:g('jre')?.value,
     jGrape:g('jgr')?.value, jCherry:g('jch')?.value,
@@ -2957,7 +2958,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-230623';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260709-232052';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
@@ -3141,7 +3142,7 @@ function applyMLLocks(){
   const _pu=parseFloat(f.pushUnit)||_mp;
   const pushV=(v,extra)=>{ const n=parseFloat(v); if(v===''||v==null||isNaN(n)) return '<span class="vmut">未入力</span>'; return `${n}PUSH <span class="vmut">（${extra(n)}）</span>`; };
   document.getElementById('viewPl').innerHTML=vrow('現金投資',pushV(f.pushC,n=>`${(n*1000).toLocaleString()}円 ・ ${(n*_mp).toLocaleString()}枚`))+vrow('貯メダル投資',(f.pushS>0||f.storedTotal>0)?`${f.pushS}PUSH <span class="vmut">（${Math.round(f.storedTotal||0).toLocaleString()}枚）</span>`:'<span class="vmut">未入力</span>')+vrow('持ちメダル投資（記録用）',(f.pushK>0||f.carryTotal>0)?`${f.pushK}PUSH <span class="vmut">（${Math.round(f.carryTotal||0).toLocaleString()}枚）</span>`:'<span class="vmut">未入力</span>')+`<div class="psub" style="margin:2px 0 0">1PUSHの枚数：${_pu}枚（貯メダル用）</div>`;
-  document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('終了日時',f.endAt?mlEsc(f.endAt):'<span class="vmut">未設定</span>')+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h'+((f.startAt&&f.endAt)?' <span class="vmut" style="font-size:10px">（自動計算）</span>':' <span class="vmut" style="font-size:10px">（手入力）</span>'):'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
+  document.getElementById('viewEn').innerHTML=vrow('終了時持ちメダル',vnum(f.endMedal,'枚'))+vrow('終了日時',f.endAt?mlEsc(f.endAt):'<span class="vmut">未設定</span>')+vrow('稼働時間',f.hours?parseFloat(f.hours)+'h'+((!f.hoursManual&&f.startAt&&f.endAt)?' <span class="vmut" style="font-size:10px">（自動計算）</span>':' <span class="vmut" style="font-size:10px">（手入力）</span>'):'<span class="vmut">未入力</span>')+(f.jug?vrow('終了 回転/BIG/REG',`${vnum(f.jSpinE)} / ${vnum(f.jBigE)} / ${vnum(f.jRegE)}`)+vrow('ブドウ / チェリー',`${vnum(f.jGrape)} / ${vnum(f.jCherry)}`)+vrow('REG内訳 単/チェ/不明',`${vnum(f.jRegSolo)} / ${vnum(f.jRegChe)} / ${vnum(f.jRegUnk)}`)+vrow('BIG内訳 単/チェ/不明',`${vnum(f.jBigSolo)} / ${vnum(f.jBigChe)} / ${vnum(f.jBigUnk)}`):'');
   const memoTxt=f.memo?mlEsc(f.memo).replace(/\n/g,'<br>'):'<span class="memoempty">メモなし</span>';
   document.getElementById('viewMm').innerHTML=`<div class="memoacts" id="memoActs"></div><div class="memobox" id="memoBox">${memoTxt}</div>`;
   const sw=(view,edit,locked)=>{const v=document.getElementById(view),ed=document.getElementById(edit);if(v)v.style.display=locked?'block':'none';if(ed)ed.style.display=locked?'none':'block';};
@@ -3338,6 +3339,7 @@ window.svML=function(mid,day,editId,mode){
     pushUnit:gv('fpu')||((S[storeIdx]||{}).mp||46),                // 貯メダルの1PUSH枚数（店により異なる）
     startMedal:gv('fsm')||0,                                      // 開始時持ちメダル（枚）
     startAt:(dtReadInput('fstart')||null), endAt:(dtReadInput('fend')||null),   // 開始/終了日時（2026/7/9 19:16。任意）
+    hoursManual:!!fhrManual,   // 稼働時間が手入力か（復元時にこのフラグを尊重）
     handoffs:curHandoffs(),                                       // 受け渡し（相手＋枚数の配列）
     given:curHandoffs().filter(h=>h.type==='give').reduce((a,h)=>a+h.amount,0),      // 集計互換：渡した合計
     received:curHandoffs().filter(h=>h.type==='recv').reduce((a,h)=>a+h.amount,0),   // 集計互換：受け取り合計
