@@ -698,6 +698,36 @@ body.modal-open #wrap{overflow:hidden!important}
 .ma img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .salist{display:flex;flex-direction:column;gap:9px}
 .salrow{display:flex;align-items:center;gap:10px}
+.exprow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.exprow:last-child{border-bottom:none}
+.exprow .explabel{font-size:14px;font-weight:600;color:#e4e4e7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exprow .expmembers{font-size:10px;color:var(--text-muted);margin-top:2px}
+.exprow .expamt{font-weight:700;color:#ff8a5c;font-variant-numeric:tabular-nums;white-space:nowrap}
+.expedit{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.expedit-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.expedit-no{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.expinp-label{width:100%;box-sizing:border-box;background:#000;border:0.5px solid var(--border-strong);border-radius:10px;padding:9px 12px;color:#fff;font-size:16px;outline:none;margin-bottom:8px}
+.expinp-amtrow{display:flex;align-items:center;gap:6px;background:#000;border:0.5px solid var(--border-strong);border-radius:10px;padding:5px 12px;margin-bottom:10px}
+.expinp-amt{flex:1;min-width:0;background:none;border:none;color:#fff;font-size:16px;font-weight:600;text-align:right;outline:none;font-variant-numeric:tabular-nums}
+.expinp-amtrow .expu{font-size:12px;color:var(--text-muted)}
+.exptgt-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.exptgt-lbl{font-size:11px;color:var(--text-muted)}
+.exptgt{display:flex;flex-wrap:wrap;gap:6px}
+.mchip{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);color:var(--text-secondary);border:0.5px solid var(--border-strong);border-radius:999px;font-size:12px;font-weight:600;padding:5px 11px;cursor:pointer}
+.mchip.on{background:rgba(124,116,255,.2);color:#b8b3ff;border-color:rgba(124,116,255,.6)}
+.mchip.team.on{background:rgba(124,116,255,.28);color:#c7c2ff}
+.mchip.dim{opacity:.35;pointer-events:none}
+.expadd{width:100%;margin-top:2px;color:var(--text-success);border-style:dashed}
+.expinfo-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:13px}
+.expall{margin-top:4px}
+.expall-total{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);padding:6px 2px 10px}
+.expall-total .expamt{font-size:14px;font-weight:700}
+.expgroup{margin-bottom:12px;background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;overflow:hidden}
+.expgroup-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-2)}
+.expgroup-date{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.expgroup-sub{font-size:12px;font-weight:700;color:#ff8a5c;font-variant-numeric:tabular-nums}
+.expgroup .exprow{padding:9px 12px;cursor:pointer}
+.expsearch{flex:1;min-width:0;background:#000;border:0.5px solid var(--border-strong);border-radius:8px;padding:7px 11px;color:#fff;font-size:16px;outline:none}
 .salrow .salnm{flex:1;min-width:0;font-size:14px;font-weight:600;color:#e4e4e7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .salinp{display:flex;align-items:center;gap:6px;background:#000;border:0.5px solid var(--border-strong);border-radius:10px;padding:4px 12px;width:140px}
 .salinp input{flex:1;min-width:0;background:none;border:none;color:#fff;font-size:16px;font-weight:600;text-align:right;outline:none;font-variant-numeric:tabular-nums}
@@ -913,8 +943,8 @@ async function saveBalance(mid,date,data){
   const uid=MEMBERS[mid]?.uid; if(!uid){ alert('メンバー情報が読み込めていません'); return; }
   try{ await setDoc(doc(balCol,`${mid}_${date}`),{mid,uid,date,stored:data.stored||{},cashIn:data.cashIn||0}); }catch(e){ alert('保存に失敗しました：'+e.message); }
 }
-async function saveSalary(date,payments){
-  try{ await setDoc(doc(salaryCol,date),{date,payments:payments||{},paidAt:serverTimestamp()}); }catch(e){ alert('保存に失敗しました：'+e.message); }
+async function saveSalary(date,items){
+  try{ await setDoc(doc(salaryCol,date),{date,items:items||[],paidAt:serverTimestamp()}); }catch(e){ alert('保存に失敗しました：'+e.message); }
 }
 function rebuildML(){
   ML={};
@@ -993,11 +1023,17 @@ function attachListeners(){
     BL={}; snap.forEach(ds=>{ const v=ds.data(); if(v&&v.mid!=null&&v.date) BL[`${v.mid}_${v.date}`]={stored:v.stored||{},cashIn:v.cashIn||0}; });
     if(booted) ra();
   }, err=>console.error('balancelog',err));
-  // 給与支払い（現金残高のみ減算）
+  // 経費（現金残高のみ減算）
   onSnapshot(salaryCol, snap=>{
-    SL={}; snap.forEach(ds=>{ const v=ds.data(); if(v&&v.date) SL[v.date]=v.payments||{}; });
+    SL={}; snap.forEach(ds=>{ const v=ds.data(); if(!v||!v.date) return;
+      if(Array.isArray(v.items)){ SL[v.date]={items:v.items}; }
+      else if(v.payments){ // 旧・給与形式（uid:金額）を経費itemsへ変換して表示
+        const items=[]; for(const uid in v.payments){ const amt=+v.payments[uid]||0; if(amt>0){ const mid=uidToMid[uid]; items.push({label:'給与', amount:amt, team:false, members:(mid!=null?[mid]:[])}); } }
+        SL[v.date]={items};
+      } else { SL[v.date]={items:[]}; }
+    });
     if(booted) ra();
-  }, err=>console.error('salary',err));
+  }, err=>console.error('expense',err));
 }
 function tryRender(){ if(cfgReady&&medalReady&&membersReady){ const first=!booted; booted=true; ra(); if(first) maybePromptBaseline(); } }
 async function handleKicked(){
@@ -1258,12 +1294,14 @@ function storedYenNow(mid){let t=0;S.forEach((s,si)=>{t+=mY(storedNow(mid,si),si
 function baseYen(mid){let t=0;S.forEach((s,si)=>{t+=mY(getBaseMedal(mid,si),si)});return t}
 function cashInMid(mid){let t=0;Object.keys(BL).forEach(k=>{if(k.startsWith(mid+'_'))t+=(BL[k].cashIn||0)});return t}
 function cashInTeam(){let t=0;N.forEach((_,mid)=>t+=cashInMid(mid));return t}
-function cashBalTeam(){return initCash-cashInTeam()-salaryTotal()}   // 現金残高＝初期現金−現金投資累計−給与支払累計
-// ===== 給与支払い（現金残高のみ減算・収支には不算入） =====
+function cashBalTeam(){return initCash-cashInTeam()-salaryTotal()}   // 現金残高＝初期現金−現金投資累計−経費累計
+// ===== 経費（現金残高のみ減算・収支には不算入） =====
+// データ構造：SL[date] = { items:[{label, amount, team:bool, members:[mid,...]}] }
 function slGet(y,mo,day){ return SL[dstr(y,mo,day)]||null; }
-function salaryDayTotal(y,mo,day){ const p=slGet(y,mo,day); if(!p)return 0; let t=0; for(const k in p)t+=(+p[k]||0); return t; }
-function salaryHas(y,mo,day){ const p=slGet(y,mo,day); if(!p)return false; for(const k in p) if(+p[k]>0) return true; return false; }
-function salaryTotal(){ let t=0; for(const d in SL){ const p=SL[d]; for(const k in p)t+=(+p[k]||0); } return t; }
+function expItems(y,mo,day){ const r=slGet(y,mo,day); return (r&&Array.isArray(r.items))?r.items:[]; }
+function salaryDayTotal(y,mo,day){ return expItems(y,mo,day).reduce((s,it)=>s+(+it.amount||0),0); }
+function salaryHas(y,mo,day){ return expItems(y,mo,day).some(it=>(+it.amount||0)>0); }
+function salaryTotal(){ let t=0; for(const d in SL){ const r=SL[d]; const items=(r&&Array.isArray(r.items))?r.items:[]; items.forEach(it=>t+=(+it.amount||0)); } return t; }
 function realMid(mid){return storedYenNow(mid)-baseYen(mid)-cashInMid(mid)} // 実質収支＝貯メダル円の増減−現金投資
 // その日の実質収支（収支管理ベース）：記録がなければ0
 function blDayReal(mid,y,mo,day){
@@ -1273,10 +1311,10 @@ function blDayReal(mid,y,mo,day){
   return med-(rec.cashIn||0);
 }
 function blDayHas(mid,y,mo,day){return !!blGet(mid,y,mo,day)}
-// カレンダーセルのマーク（上から：紫＝給与／黄＝収支管理／グレー＊＝記録途中）
+// カレンダーセルのマーク（上から：紫＝経費／黄＝収支管理／グレー＊＝記録途中）
 function dayMarksHtml(day, mid){
   let h='';
-  if(salaryHas(cy,cm,day)) h+='<span class="dmark sal" title="給与支払い"></span>';
+  if(salaryHas(cy,cm,day)) h+='<span class="dmark sal" title="経費"></span>';
   const balHas = (mid!=null) ? blDayHas(mid,cy,cm,day) : N.some((_,m)=>blDayHas(m,cy,cm,day));
   if(balHas) h+='<span class="dmark bal" title="収支管理"></span>';
   const incHas = (mid!=null)
@@ -1425,7 +1463,7 @@ function dayfab2Btn(onclick){
 }
 function dayfab3Btn(onclick){
   const bill='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg>';
-  return `<button class="dayfab pay${fabAnim?' anim-in':''}" style="position:absolute;bottom:-18px;left:-16px;z-index:30" onclick="event.stopPropagation();${onclick}" aria-label="給与支払い">${bill}</button>`;
+  return `<button class="dayfab pay${fabAnim?' anim-in':''}" style="position:absolute;bottom:-18px;left:-16px;z-index:30" onclick="event.stopPropagation();${onclick}" aria-label="経費">${bill}</button>`;
 }
 
 function renderTabs(){
@@ -2000,8 +2038,9 @@ const WL_PERIODS=[['all','すべて'],['today','本日'],['yesterday','昨日'],
 // 期間指定の状態（wl=稼働一覧 / ana=収支分析 で独立）
 const PR={
   wl:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
-  ana:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
-};   // デフォルトは今月
+  ana:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
+  exp:{period:'all',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
+};   // デフォルトは今月（経費一覧はすべて）
 const WL_SORTS=[['date_desc','日付：新しい順'],['date_asc','日付：古い順'],['real_desc','実収支：高い順'],['real_asc','実収支：低い順'],['hours_desc','稼働：長い順'],['hourly_desc','時給：高い順'],['no_asc','台番：小さい順'],['no_desc','台番：大きい順']];
 
 // 期間フィルタの判定範囲（[from,to] のローカル日付文字列 YYYY-MM-DD、null=無制限）を返す
@@ -2144,12 +2183,13 @@ function prRangeCalHtml(t){
     <div class="wlc-foot"><button class="btn" onclick="prCalCancel('${t}')">キャンセル</button><button class="btn p" onclick="prCalDone('${t}')" ${P.selFrom?'':'disabled style="opacity:.4"'}>完了</button></div>
   </div>`;
 }
-window.prSetPeriod=function(t,p){ const P=PR[t]; P.period=p; P.from=null; P.to=null; P.calOpen=false; ra(); };
-window.prClearRange=function(t){ const P=PR[t]; P.from=null; P.to=null; P.calOpen=false; ra(); };
-window.prCalToggle=function(t){ const P=PR[t]; const now=new Date(); P.calOpen=!P.calOpen; if(P.calOpen){ P.calY=now.getFullYear(); P.calM=now.getMonth(); P.selFrom=P.from; P.selTo=P.to; } ra(); };
-window.prCalGranSet=function(t,g){ const P=PR[t]; const now=new Date(); P.gran=g; P.selFrom=null; P.selTo=null; P.calY=now.getFullYear(); P.calM=now.getMonth(); ra(); };
-window.prCalNav=function(t,d){ const P=PR[t]; P.calM+=d; if(P.calM<0){P.calM=11;P.calY--;} if(P.calM>11){P.calM=0;P.calY++;} ra(); };
-window.prCalNavY=function(t,d){ const P=PR[t]; P.calY+=d; ra(); };
+function prRefresh(t){ if(t==='exp'){ if(typeof renderSalary==='function') renderSalary(); } else { ra(); } }
+window.prSetPeriod=function(t,p){ const P=PR[t]; P.period=p; P.from=null; P.to=null; P.calOpen=false; prRefresh(t); };
+window.prClearRange=function(t){ const P=PR[t]; P.from=null; P.to=null; P.calOpen=false; prRefresh(t); };
+window.prCalToggle=function(t){ const P=PR[t]; const now=new Date(); P.calOpen=!P.calOpen; if(P.calOpen){ P.calY=now.getFullYear(); P.calM=now.getMonth(); P.selFrom=P.from; P.selTo=P.to; } prRefresh(t); };
+window.prCalGranSet=function(t,g){ const P=PR[t]; const now=new Date(); P.gran=g; P.selFrom=null; P.selTo=null; P.calY=now.getFullYear(); P.calM=now.getMonth(); prRefresh(t); };
+window.prCalNav=function(t,d){ const P=PR[t]; P.calM+=d; if(P.calM<0){P.calM=11;P.calY--;} if(P.calM>11){P.calM=0;P.calY++;} prRefresh(t); };
+window.prCalNavY=function(t,d){ const P=PR[t]; P.calY+=d; prRefresh(t); };
 function prEndOfUnit(t,from){   // その粒度単位の終端（日=同日、月=その月末、年=その年末）
   const P=PR[t];
   if(P.gran==='month'){ const y=+from.slice(0,4), m2=+from.slice(5,7)-1; return `${y}-${String(m2+1).padStart(2,'0')}-${String(dim(y,m2)).padStart(2,'0')}`; }
@@ -2161,12 +2201,12 @@ window.prCalPick=function(t,a,b){
   if(!P.selFrom || (P.selFrom&&P.selTo)){ P.selFrom=a; P.selTo=null; }      // 1回目 or 選び直し
   else if(a<P.selFrom){ P.selTo=prEndOfUnit(t,P.selFrom); P.selFrom=a; }    // 前を選んだら入替
   else { P.selTo=b; }                                                       // 2回目=終了
-  ra();
+  prRefresh(t);
 };
 window.prCalDone=function(t){
   const P=PR[t];
   if(!P.selFrom) return;
-  P.from=P.selFrom; P.to=P.selTo||prEndOfUnit(t,P.selFrom); P.period='all'; P.calOpen=false; ra();
+  P.from=P.selFrom; P.to=P.selTo||prEndOfUnit(t,P.selFrom); P.period='all'; P.calOpen=false; prRefresh(t);
 };
 window.prCalCancel=function(t){ const P=PR[t]; P.calOpen=false; P.selFrom=null; P.selTo=null; ra(); };
 function wlFilterBar(){
@@ -2278,7 +2318,7 @@ function cfabBarHtml(){
   const coin='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6V6"/><path d="M5 10v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/><path d="M5 14v4c0 1.44 3.13 2.6 7 2.6s7-1.16 7-2.6v-4"/></svg>';
   const bill='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/></svg>';
   return `<div class="cfabbar" id="cfabbar">
-      <button class="dayfab pay cfab side" onpointerdown="cfabRipple(event,this)" onclick="qSalary()" aria-label="給与">${bill}</button>
+      <button class="dayfab pay cfab side" onpointerdown="cfabRipple(event,this)" onclick="qSalary()" aria-label="経費">${bill}</button>
       <button class="dayfab cfab big" onpointerdown="cfabRipple(event,this)" onclick="qAdd()" aria-label="記録を追加">＋</button>
       <button class="dayfab bal cfab side" onpointerdown="cfabRipple(event,this)" onclick="qBal()" aria-label="収支管理">${coin}</button>
     </div>`;
@@ -2365,90 +2405,188 @@ window.newStoreSave=async function(){
 };
 window.newStoreCancel=function(){ const fn=newStoreReturn; newStoreReturn=null; if(fn) fn(null); };
 
-// ===== 給与支払いモーダル（履歴＋編集ロック式） =====
+// ===== 経費モーダル（履歴＋編集ロック式。項目ごとに 項目名・金額・チーム/メンバー） =====
 let salCtx={y:null,mo:null,day:null}; let salView='history'; let salLocked=false;
+let expDraft=[];   // 編集中の項目 [{label, amount, team, members:Set}]
 window.openSalary=function(day){
-  salCtx={y:cy,mo:cm,day}; salView='history'; salLocked=salaryHas(cy,cm,day);
-  renderSalary(); oM();
+  salCtx={y:cy,mo:cm,day}; salView='day'; renderSalary(); oM();
 };
+function expDescParts(it){
+  if(it.team) return 'チーム';
+  const ms=(it.members||[]).map(mid=>N[mid]).filter(Boolean);
+  return ms.length?ms.join('・'):'対象なし';
+}
+// 経費一覧（全日付）用の状態
+let expSort='date_desc';   // date_desc | date_asc | amt_desc | amt_asc
+let expSearch='';
+const EXP_SORTS=[['date_desc','日付：新しい順'],['date_asc','日付：古い順'],['amt_desc','金額：高い順'],['amt_asc','金額：低い順']];
+// 全経費を1件ずつflatに収集（date付き）
+function expAllFlat(){
+  const out=[];
+  for(const ds in SL){ const items=(SL[ds]&&SL[ds].items)||[]; items.forEach((it,idx)=>{ if((+it.amount||0)>0) out.push({ds, idx, label:it.label||'経費', amount:+it.amount||0, team:!!it.team, members:it.team?[]:(it.members||[])}); }); }
+  return out;
+}
+// 期間・検索でフィルタ
+function expFiltered(){
+  const {from,to}=prRange('exp'); const q=expSearch.trim().toLowerCase();
+  return expAllFlat().filter(e=>{
+    if(from&&e.ds<from) return false; if(to&&e.ds>to) return false;
+    if(q && !(e.label||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
 function salHistoryHtml(){
-  const dates=Object.keys(SL).filter(d=>{ const p=SL[d]; for(const k in p) if(+p[k]>0) return true; return false; }).sort(); // 昇順＝下ほど新しい
-  if(!dates.length) return '<div style="color:var(--text-muted);font-size:13px;padding:8px 2px">まだ給与の支払い記録がありません</div>';
+  const dates=Object.keys(SL).filter(d=>{ const items=(SL[d]&&SL[d].items)||[]; return items.some(it=>(+it.amount||0)>0); }).sort(); // 昇順＝下ほど新しい
+  if(!dates.length) return '<div style="color:var(--text-muted);font-size:13px;padding:8px 2px">まだ経費の記録がありません</div>';
   return dates.map(d=>{
-    const p=SL[d]; let total=0; const parts=[];
-    for(const uid in p){ const v=+p[uid]||0; if(v>0){ total+=v; const mid=uidToMid[uid]; parts.push(`${mlEsc(N[mid]||'?')} ${v.toLocaleString()}`); } }
+    const items=(SL[d].items||[]).filter(it=>(+it.amount||0)>0); let total=0; const parts=[];
+    items.forEach(it=>{ total+=(+it.amount||0); parts.push(`${mlEsc(it.label||'経費')} ${(+it.amount||0).toLocaleString()}`); });
     return `<div class="salhrow" onclick="salGoEdit('${d}')">
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#e4e4e7">${mdLabel(d)}</div><div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${parts.join(' ・ ')}円</div></div>
-      <div style="font-size:14px;font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">${total.toLocaleString()}円</div>
+      <div style="font-size:14px;font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">−${total.toLocaleString()}円</div>
       <span style="color:var(--text-muted);font-size:16px">›</span>
     </div>`;
   }).join('');
 }
+// 経費一覧（全日付・フィルター/並び替え/検索・日付ごとにグループ化）
+function expAllListHtml(){
+  const rows=expFiltered();
+  const grand=rows.reduce((s,e)=>s+e.amount,0);
+  // 日付ごとにグループ
+  const byDate={}; rows.forEach(e=>{ (byDate[e.ds]||(byDate[e.ds]=[])).push(e); });
+  let dates=Object.keys(byDate);
+  const dir=(expSort==='date_asc')?1:-1;   // 金額ソートでも日付グループは新しい順を既定に
+  if(expSort==='amt_desc'||expSort==='amt_asc'){
+    dates.sort((a,b)=>{ const sa=byDate[a].reduce((s,e)=>s+e.amount,0), sb=byDate[b].reduce((s,e)=>s+e.amount,0); return expSort==='amt_desc'?sb-sa:sa-sb; });
+  }else{
+    dates.sort((a,b)=> a<b?-dir:a>b?dir:0);
+  }
+  const sortItems=(arr)=>{ const c=arr.slice(); if(expSort==='amt_desc')c.sort((x,y)=>y.amount-x.amount); else if(expSort==='amt_asc')c.sort((x,y)=>x.amount-y.amount); else c.sort((x,y)=>x.idx-y.idx); return c; };
+  let body='';
+  if(!dates.length){ body='<div style="color:var(--text-muted);font-size:13px;padding:14px 2px;text-align:center">該当する経費がありません</div>'; }
+  else{
+    body=dates.map(ds=>{
+      const items=sortItems(byDate[ds]); const sub=items.reduce((s,e)=>s+e.amount,0);
+      const lines=items.map(e=>`<div class="exprow" onclick="salGoEdit('${ds}')"><div style="flex:1;min-width:0"><div class="explabel">${mlEsc(e.label)}</div><div class="expmembers">${mlEsc(expDescParts(e))}</div></div><span class="expamt">−${e.amount.toLocaleString()}円</span></div>`).join('');
+      return `<div class="expgroup"><div class="expgroup-hd"><span class="expgroup-date">${mdLabel(ds)}</span><span class="expgroup-sub">−${sub.toLocaleString()}円</span></div>${lines}</div>`;
+    }).join('');
+  }
+  return `<div class="expall-total"><span>合計（${rows.length}件）</span><span class="expamt">−${grand.toLocaleString()}円</span></div>${body}`;
+}
+function expSortBar(){
+  return `<div class="wlbar"><input class="expsearch" type="text" placeholder="項目名で絞り込み" value="${mlEsc(expSearch)}" oninput="expSetSearch(this.value)"><select class="ysel" onchange="expSetSort(this.value)">${EXP_SORTS.map(([k,l])=>`<option value="${k}"${expSort===k?' selected':''}>${l}</option>`).join('')}</select></div>`;
+}
 function salViewHtml(){
-  const {y,mo,day}=salCtx; const p=slGet(y,mo,day)||{}; let rows='',total=0;
-  N.forEach((n,mid)=>{ const uid=MEMBERS[mid]?.uid; const v=uid?(+p[uid]||0):0; if(v>0){ total+=v;
-    rows+=`<div class="salrow"><span class="hoav">${avatarHtml(mid)}</span><span class="salnm">${mlEsc(n)}</span><span style="font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">${v.toLocaleString()}円</span></div>`; } });
-  if(!rows) rows='<div style="color:var(--text-muted);font-size:12px">支払いなし</div>';
-  return `<div class="salist">${rows}</div><div style="display:flex;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:0.5px solid var(--border)"><span style="color:var(--text-muted);font-size:12px">合計</span><span style="font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">${total.toLocaleString()}円</span></div>`;
+  const {y,mo,day}=salCtx; const items=expItems(y,mo,day).filter(it=>(+it.amount||0)>0); let rows='',total=0;
+  items.forEach(it=>{ total+=(+it.amount||0);
+    rows+=`<div class="exprow"><div style="flex:1;min-width:0"><div class="explabel">${mlEsc(it.label||'経費')}</div><div class="expmembers">${mlEsc(expDescParts(it))}</div></div><span class="expamt">−${(+it.amount||0).toLocaleString()}円</span></div>`; });
+  if(!rows) rows='<div style="color:var(--text-muted);font-size:12px">経費なし</div>';
+  return `<div class="salist">${rows}</div><div style="display:flex;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:0.5px solid var(--border)"><span style="color:var(--text-muted);font-size:12px">合計</span><span style="font-weight:700;color:#c7c7cc;font-variant-numeric:tabular-nums">−${total.toLocaleString()}円</span></div>`;
+}
+// 編集中ドラフトを既存データから初期化
+function expLoadDraft(){
+  const {y,mo,day}=salCtx;
+  expDraft=expItems(y,mo,day).map(it=>({label:it.label||'', amount:(+it.amount||0)||'', team:!!it.team, members:new Set(it.team?[]:(it.members||[]))}));
+  if(!expDraft.length) expDraft=[{label:'', amount:'', team:false, members:new Set()}];
+}
+// 1項目ぶんの編集UI
+function expItemHtml(i){
+  const it=expDraft[i];
+  const chips=N.map((n,mid)=>`<button type="button" class="mchip${(!it.team&&it.members.has(mid))?' on':''}${it.team?' dim':''}" onclick="expToggleMember(${i},${mid})">${avatarMini(mid)}${mlEsc(n)}</button>`).join('');
+  return `<div class="expedit">
+    <div class="expedit-hd"><span class="expedit-no">経費 ${i+1}</span>${expDraft.length>1?`<button type="button" class="tlink danger" onclick="expRemoveItem(${i})">削除</button>`:''}</div>
+    <input class="expinp-label" id="exp-label-${i}" type="text" placeholder="項目（例：ガソリン代）" value="${mlEsc(it.label||'')}" oninput="expSetLabel(${i},this.value)">
+    <div class="expinp-amtrow"><input class="expinp-amt" id="exp-amt-${i}" type="text" inputmode="numeric" placeholder="金額" value="${it.amount!==''&&it.amount!=null?it.amount:''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');expSetAmount(${i},this.value)"><span class="expu">円</span></div>
+    <div class="exptgt-hd"><span class="exptgt-lbl">対象</span><button type="button" class="tlink mut" onclick="expClearTarget(${i})">全解除</button></div>
+    <div class="exptgt">
+      <button type="button" class="mchip team${it.team?' on':''}" onclick="expToggleTeam(${i})">チーム</button>
+      ${chips}
+    </div>
+  </div>`;
 }
 function renderSalary(){
-  const {y,mo,day}=salCtx; const lead=isLeader();
-  if(salView==='history'){
-    document.getElementById('mtitle').textContent='給与の履歴';
-    const hasDay=salaryHas(y,mo,day);
-    document.getElementById('mbody').innerHTML=`<div class="salhist">${salHistoryHtml()}</div>
-      ${lead?`<button class="btn p" style="width:100%;margin-top:12px" onclick="salToEdit()">${mo+1}/${day} の給与を${hasDay?'編集する':'入力する'}</button>`:'<div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px">給与の入力・編集はリーダーのみ行えます</div>'}`;
+  const {y,mo,day}=salCtx;
+  // 全経費一覧
+  if(salView==='all'){
+    document.getElementById('mtitle').textContent='経費一覧';
+    document.getElementById('mbody').innerHTML=`<button class="tlink mut" onclick="salToDay()" style="margin-bottom:10px">‹ ${mo+1}/${day} に戻る</button>
+      ${prPeriodBar('exp')}
+      ${expSortBar()}
+      <div class="expall">${expAllListHtml()}</div>`;
     document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button>`;
-    const sh=document.querySelector('.salhist'); if(sh) sh.scrollTop=sh.scrollHeight; // 最新（最下部）を表示
     return;
   }
-  const back=`<button class="tlink mut" onclick="salToHistory()" style="margin-bottom:10px">‹ 履歴に戻る</button>`;
-  document.getElementById('mtitle').textContent=`給与支払い — ${mo+1}/${day}`;
-  if(salLocked){
-    document.getElementById('mbody').innerHTML=`${back}
-      <div class="secbox"><div class="sechd"><span class="st">この日の給与</span>${lead?'<button class="tlink" onclick="salEdit()">編集</button>':''}</div>${salViewHtml()}</div>`;
-    document.getElementById('mfoot').innerHTML=`${lead?'<button class="btn danger" onclick="delSalary()">この日を削除</button>':''}<button class="btn" onclick="cM()">閉じる</button>`;
-  }else{
-    const exist=slGet(y,mo,day)||{};
-    const rows=N.map((n,mid)=>{ const uid=MEMBERS[mid]?.uid; const val=(uid&&exist[uid])?exist[uid]:'';
-      return `<div class="salrow"><span class="hoav">${avatarHtml(mid)}</span><span class="salnm">${mlEsc(n)}</span><div class="salinp"><input id="sal-${mid}" type="number" inputmode="numeric" placeholder="0" value="${val}" oninput="salCalc()"><span class="salu">円</span></div></div>`;
-    }).join('');
-    document.getElementById('mbody').innerHTML=`${back}
-      <div style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:13px">支払った金額は現金残高から引かれます。収支（実質収支・現金収支・メダル）には影響しません。</div>
-      <div class="salist">${rows}</div>
-      <div class="mlcalc" id="sal-calc" style="margin-top:13px"></div>`;
-    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">キャンセル</button><button class="btn p" onclick="svSalary()">完了</button>`;
-    salCalc();
+  // その日のテキスト表示（一覧＋合計＋現金残高）
+  if(salView==='day'){
+    document.getElementById('mtitle').textContent=`経費 — ${mo+1}/${day}`;
+    const dayTotal=salaryDayTotal(y,mo,day);
+    const bal=cashBalTeam();
+    const info=`<div class="secbox" style="margin-top:12px"><div class="expinfo-row"><span>この日の経費</span><span class="expamt">−${dayTotal.toLocaleString()}円</span></div><div class="expinfo-row"><span style="color:var(--text-muted)">現在の現金残高</span><span style="font-weight:700;color:${bal<0?'var(--text-danger)':'#c7c7cc'};font-variant-numeric:tabular-nums">${bal.toLocaleString()}円</span></div></div>`;
+    document.getElementById('mbody').innerHTML=`
+      <div class="secbox"><div class="sechd"><span class="st">${mo+1}/${day} の経費</span></div>${salViewHtml()}</div>
+      ${info}
+      <button class="btn p" style="width:100%;margin-top:14px" onclick="salToEdit()">経費を編集する</button>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="salToAll()">すべての経費を見る</button>`;
+    document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="cM()">閉じる</button>`;
+    return;
   }
+  // 編集画面
+  const back=`<button class="tlink mut" onclick="salBackFromEdit()" style="margin-bottom:10px">‹ ${mo+1}/${day} に戻る</button>`;
+  document.getElementById('mtitle').textContent=`経費を編集 — ${mo+1}/${day}`;
+  const list=expDraft.map((_,i)=>expItemHtml(i)).join('');
+  document.getElementById('mbody').innerHTML=`${back}
+    <div style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:13px">経費は現金残高から引かれます。収支（実質収支・現金収支・メダル）には影響しません。</div>
+    <div id="exp-list">${list}</div>
+    <button type="button" class="btn expadd" onclick="expAddItem()">＋ 経費を追加</button>
+    <div class="mlcalc" id="sal-calc" style="margin-top:13px"></div>`;
+  document.getElementById('mfoot').innerHTML=`<button class="btn" onclick="salCancelEdit()">キャンセル</button><button class="btn p" onclick="svSalary()">完了</button>`;
+  salCalc();
 }
-window.salToEdit=function(){ if(!isLeader())return; salView='edit'; salLocked=salaryHas(salCtx.y,salCtx.mo,salCtx.day); renderSalary(); };
-window.salToHistory=function(){ salView='history'; renderSalary(); };
-window.salGoEdit=function(ds){ const a=ds.split('-').map(Number); salCtx={y:a[0],mo:a[1]-1,day:a[2]}; salView='edit'; salLocked=salaryHas(a[0],a[1]-1,a[2]); renderSalary(); };
-window.salEdit=function(){ if(!isLeader())return; salLocked=false; renderSalary(); };
+// 編集開始時のドラフトのスナップショット（離脱ガード用）
+let expDraftSnap='';
+function expDraftSig(){ return JSON.stringify(expDraft.map(it=>({l:(it.label||'').trim(), a:parseInt(it.amount,10)||0, t:!!it.team, m:it.team?[]:[...it.members].sort()}))); }
+function expDirty(){ return expDraftSig()!==expDraftSnap; }
+window.salToDay=function(){ salView='day'; renderSalary(); };
+window.salToAll=function(){ salView='all'; renderSalary(); };
+window.salToEdit=function(){ expLoadDraft(); expDraftSnap=expDraftSig(); salView='edit'; renderSalary(); };
+window.salGoEdit=function(ds){ const a=ds.split('-').map(Number); salCtx={y:a[0],mo:a[1]-1,day:a[2]}; salView='day'; renderSalary(); };
+window.salBackFromEdit=function(){ if(expDirty()){ confirmBox('入力内容を保存せずに戻りますか？', ()=>{ salView='day'; renderSalary(); }); } else { salView='day'; renderSalary(); } };
+window.salCancelEdit=function(){ salBackFromEdit(); };
+window.expSetSort=function(v){ expSort=v; const el=document.querySelector('.expall'); if(el) el.innerHTML=expAllListHtml(); };
+window.expSetSearch=function(v){ expSearch=v; const el=document.querySelector('.expall'); if(el) el.innerHTML=expAllListHtml(); };
+// 項目編集ハンドラ
+window.expSetLabel=function(i,v){ if(expDraft[i]) expDraft[i].label=v; };
+window.expSetAmount=function(i,v){ if(expDraft[i]) expDraft[i].amount=(v===''?'':parseInt(v,10)); salCalc(); };
+window.expToggleTeam=function(i){ const it=expDraft[i]; if(!it)return; it.team=!it.team; if(it.team) it.members.clear(); renderExpList(); };
+window.expToggleMember=function(i,mid){ const it=expDraft[i]; if(!it||it.team)return; if(it.members.has(mid)) it.members.delete(mid); else it.members.add(mid); renderExpList(); };
+window.expClearTarget=function(i){ const it=expDraft[i]; if(!it)return; it.team=false; it.members.clear(); renderExpList(); };
+window.expAddItem=function(){ expDraft.push({label:'', amount:'', team:false, members:new Set()}); renderExpList(); salCalc(); };
+window.expRemoveItem=function(i){ const it=expDraft[i]; const nm=(it&&it.label||'').trim(); confirmBox(`本当に${nm?`「${nm}」`:'この経費'}を削除しますか？`, ()=>{ expDraft.splice(i,1); if(!expDraft.length) expDraft=[{label:'',amount:'',team:false,members:new Set()}]; renderExpList(); salCalc(); }, {yes:'削除', yesClass:'danger'}); };
+// リストだけ再描画（入力中のフォーカスに配慮し、値はドラフトから復元）
+function renderExpList(){ const el=document.getElementById('exp-list'); if(el){ el.innerHTML=expDraft.map((_,i)=>expItemHtml(i)).join(''); } salCalc(); }
 window.salCalc=function(){
   const {y,mo,day}=salCtx;
-  let t=0; N.forEach((_,mid)=>{ t+=parseFloat(document.getElementById('sal-'+mid)?.value)||0; });
+  let t=0; expDraft.forEach(it=>{ t+=parseInt(it.amount,10)||0; });
   const existTotal=salaryDayTotal(y,mo,day);
   const after=cashBalTeam()+existTotal-t;
   const row=(l,v,col)=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:3px 0"><span style="color:var(--text-muted);font-size:12px">${l}</span><span style="font-weight:700;font-size:13px;color:${col||'#9a9aa0'};font-variant-numeric:tabular-nums">${v}</span></div>`;
   const box=document.getElementById('sal-calc'); if(!box)return;
-  box.innerHTML=row('支払い合計', `${t.toLocaleString()}円`)
+  box.innerHTML=row('経費合計', `−${t.toLocaleString()}円`)
     +`<div style="height:0.5px;background:var(--border);margin:6px 0"></div>`
-    +row('支払い後の現金残高', `${after.toLocaleString()}円`, after<0?'var(--text-danger)':'#c7c7cc');
+    +row('登録後の現金残高', `${after.toLocaleString()}円`, after<0?'var(--text-danger)':'#c7c7cc');
 };
 window.svSalary=function(){
-  if(!isLeader()){ alert('給与の入力・編集はリーダーのみ行えます'); return; }
   const {y,mo,day}=salCtx; const ds=dstr(y,mo,day);
-  const payments={};
-  N.forEach((_,mid)=>{ const uid=MEMBERS[mid]?.uid; const v=parseFloat(document.getElementById('sal-'+mid)?.value)||0; if(uid&&v>0) payments[uid]=v; });
-  SL[ds]=payments;
-  saveSalary(ds,payments);
-  salView='edit'; salLocked=true; renderSalary();
+  const items=[];
+  expDraft.forEach(it=>{ const amt=parseInt(it.amount,10)||0; const label=(it.label||'').trim(); if(amt>0){ items.push({label:label||'経費', amount:amt, team:!!it.team, members:it.team?[]:[...it.members]}); } });
+  SL[ds]={items};
+  saveSalary(ds,items);
+  expDraftSnap=expDraftSig();   // 保存済み＝dirty解消
+  salView='day'; renderSalary();
 };
 window.delSalary=function(){
-  if(!isLeader()){ alert('給与の削除はリーダーのみ行えます'); return; }
   const {y,mo,day}=salCtx; const ds=dstr(y,mo,day);
-  confirmBox(`${mo+1}/${day} の給与支払いを削除しますか？\n引いていた現金残高はこの分だけ戻ります。`, async ()=>{
+  confirmBox(`${mo+1}/${day} の経費を削除しますか？\n引いていた現金残高はこの分だけ戻ります。`, async ()=>{
     if(typeof salaryCol!=='undefined' && salaryCol){
       try{ await deleteDoc(doc(salaryCol,ds)); }catch(e){ alert('削除に失敗しました：'+e.message); return; }
     }
@@ -2958,7 +3096,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260709-232052';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260713-232625';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
@@ -3523,7 +3661,7 @@ window.oSet=function(){
     <div style="font-size:10px;color:var(--text-muted);margin:2px 0 6px">このコードを伝えると、相手はログイン後にチームへ参加できます</div></div>`;
   const dangerSection = leader ? `<div class="setcard danger"><div class="setcard-hd"><div class="stlabel">データ管理（リーダー）</div></div>
     <div style="font-size:10px;color:var(--text-muted);margin:0 0 8px;line-height:1.6">テストが終わったら、ここで記録を消してまっさらな状態から始められます。チーム・メンバー・店舗・初期現金・初期メダルは残ります。</div>
-    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・給与）</button></div>` : '';
+    <button class="imp-btn danger" onclick="resetRecords()">全記録をリセット（台記録・収支管理・経費）</button></div>` : '';
   const updateSection = `<div class="setcard">
     <div class="setcard-hd"><div class="stlabel">アプリの更新</div></div>
     <div style="font-size:11px;color:var(--text-muted);margin:0 0 9px;line-height:1.6">最新版がアップされたら、下のボタンで取り込めます。</div>
@@ -3583,7 +3721,7 @@ window.svMc=async function(){
 };
 window.resetRecords=async function(){
   if(!isLeader()){ alert('リセットはリーダーのみ実行できます'); return; }
-  if(!confirm('テストで貯まった記録をすべて削除します。\n\n・台記録\n・収支管理\n・給与支払い\n\nチーム / メンバー / 店舗 / 初期現金 / 初期メダルは残ります。\n\n実行しますか？')) return;
+  if(!confirm('テストで貯まった記録をすべて削除します。\n\n・台記録\n・収支管理\n・経費\n\nチーム / メンバー / 店舗 / 初期現金 / 初期メダルは残ります。\n\n実行しますか？')) return;
   if(!confirm('この操作は取り消せません。本当に全記録を削除しますか？')) return;
   if(typeof mlogsCol==='undefined' || !mlogsCol){
     ML={}; BL={}; SL={}; selDay=null;
