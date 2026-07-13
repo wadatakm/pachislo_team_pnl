@@ -2494,7 +2494,7 @@ function expItemHtml(i){
   const it=expDraft[i];
   const chips=N.map((n,mid)=>`<button type="button" class="mchip${(!it.team&&it.members.has(mid))?' on':''}${it.team?' dim':''}" onclick="expToggleMember(${i},${mid})">${avatarMini(mid)}${mlEsc(n)}</button>`).join('');
   return `<div class="expedit">
-    <div class="expedit-hd"><span class="expedit-no">経費 ${i+1}</span>${expDraft.length>1?`<button type="button" class="tlink danger" onclick="expRemoveItem(${i})">削除</button>`:''}</div>
+    <div class="expedit-hd"><span class="expedit-no">経費 ${i+1}</span><button type="button" class="tlink danger" onclick="expRemoveItem(${i})">削除</button></div>
     <input class="expinp-label" id="exp-label-${i}" type="text" placeholder="項目（例：ガソリン代）" value="${mlEsc(it.label||'')}" oninput="expSetLabel(${i},this.value)">
     <div class="expinp-amtrow"><input class="expinp-amt" id="exp-amt-${i}" type="text" inputmode="numeric" placeholder="金額" value="${it.amount!==''&&it.amount!=null?it.amount:''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');expSetAmount(${i},this.value)"><span class="expu">円</span></div>
     <div class="exptgt-hd"><span class="exptgt-lbl">対象</span><button type="button" class="tlink mut" onclick="expClearTarget(${i})">全解除</button></div>
@@ -2521,7 +2521,7 @@ function renderSalary(){
     document.getElementById('mtitle').textContent=`経費 — ${mo+1}/${day}`;
     const dayTotal=salaryDayTotal(y,mo,day);
     const bal=cashBalTeam();
-    const info=`<div class="secbox" style="margin-top:12px"><div class="expinfo-row"><span>この日の経費</span><span class="expamt">−${dayTotal.toLocaleString()}円</span></div><div class="expinfo-row"><span style="color:var(--text-muted)">現在の現金残高</span><span style="font-weight:700;color:${bal<0?'var(--text-danger)':'#c7c7cc'};font-variant-numeric:tabular-nums">${bal.toLocaleString()}円</span></div></div>`;
+    const info=`<div class="secbox" style="margin-top:12px"><div class="expinfo-row"><span style="color:var(--text-muted)">現在の現金残高</span><span style="font-weight:700;color:${bal<0?'var(--text-danger)':'#c7c7cc'};font-variant-numeric:tabular-nums">${bal.toLocaleString()}円</span></div></div>`;
     document.getElementById('mbody').innerHTML=`
       <div class="secbox"><div class="sechd"><span class="st">${mo+1}/${day} の経費</span></div>${salViewHtml()}</div>
       ${info}
@@ -3096,7 +3096,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260713-233055';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260713-233924';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
