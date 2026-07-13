@@ -2039,8 +2039,8 @@ const WL_PERIODS=[['all','すべて'],['today','本日'],['yesterday','昨日'],
 const PR={
   wl:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
   ana:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null},
-  exp:{period:'all',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
-};   // デフォルトは今月（経費一覧はすべて）
+  exp:{period:'month',from:null,to:null,calOpen:false,calY:null,calM:null,gran:'day',selFrom:null,selTo:null}
+};   // デフォルトは今月
 const WL_SORTS=[['date_desc','日付：新しい順'],['date_asc','日付：古い順'],['real_desc','実収支：高い順'],['real_asc','実収支：低い順'],['hours_desc','稼働：長い順'],['hourly_desc','時給：高い順'],['no_asc','台番：小さい順'],['no_desc','台番：大きい順']];
 
 // 期間フィルタの判定範囲（[from,to] のローカル日付文字列 YYYY-MM-DD、null=無制限）を返す
@@ -3096,7 +3096,7 @@ function updToTop(){
   if(document.readyState!=='loading') bind(); else document.addEventListener('DOMContentLoaded',bind);
 })();
 // ===== アプリ更新（iOSホーム画面アプリ向け：キャッシュ回避URLへ通常遷移して最新HTMLを取り直す） =====
-const APP_VERSION='ver.20260713-232625';   // ビルド時に日時へ自動置換
+const APP_VERSION='ver.20260713-233055';   // ビルド時に日時へ自動置換
 window.loadLatestApp=function(){
   confirmBox('最新版に更新しますか？\n※ネットに接続された状態で行ってください', ()=>{
     try{ const url=new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }
